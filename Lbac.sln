@@ -1,0 +1,69 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Lbac.Compiler", "Lbac.Compiler\Lbac.Compiler.fsproj", "{C26A4E00-2873-46AB-963C-27ADD62B42EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lbac.Tests", "Lbac.Tests\Lbac.Tests.csproj", "{ADC98828-601B-4385-891D-382C5914FAB0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7} = {E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E64BB80B-07D0-49EF-8058-8A5D235EB083}"
+	ProjectSection(SolutionItems) = preProject
+		Lbac.vsmdi = Lbac.vsmdi
+		License.txt = License.txt
+		Local.testsettings = Local.testsettings
+		Readme.markdown = Readme.markdown
+		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
+	EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Lbac.Tests.FSharp", "Lbac.Tests.FSharp\Lbac.Tests.FSharp.fsproj", "{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}"
+EndProject
+Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = Lbac.vsmdi
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C26A4E00-2873-46AB-963C-27ADD62B42EE}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{C26A4E00-2873-46AB-963C-27ADD62B42EE}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{C26A4E00-2873-46AB-963C-27ADD62B42EE}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{C26A4E00-2873-46AB-963C-27ADD62B42EE}.Debug|x86.ActiveCfg = Debug|x86
+		{C26A4E00-2873-46AB-963C-27ADD62B42EE}.Debug|x86.Build.0 = Debug|x86
+		{C26A4E00-2873-46AB-963C-27ADD62B42EE}.Release|Any CPU.ActiveCfg = Release|x86
+		{C26A4E00-2873-46AB-963C-27ADD62B42EE}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{C26A4E00-2873-46AB-963C-27ADD62B42EE}.Release|Mixed Platforms.Build.0 = Release|x86
+		{C26A4E00-2873-46AB-963C-27ADD62B42EE}.Release|x86.ActiveCfg = Release|x86
+		{C26A4E00-2873-46AB-963C-27ADD62B42EE}.Release|x86.Build.0 = Release|x86
+		{ADC98828-601B-4385-891D-382C5914FAB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADC98828-601B-4385-891D-382C5914FAB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADC98828-601B-4385-891D-382C5914FAB0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{ADC98828-601B-4385-891D-382C5914FAB0}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{ADC98828-601B-4385-891D-382C5914FAB0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ADC98828-601B-4385-891D-382C5914FAB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADC98828-601B-4385-891D-382C5914FAB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADC98828-601B-4385-891D-382C5914FAB0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{ADC98828-601B-4385-891D-382C5914FAB0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{ADC98828-601B-4385-891D-382C5914FAB0}.Release|x86.ActiveCfg = Release|Any CPU
+		{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}.Debug|x86.ActiveCfg = Debug|x86
+		{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}.Debug|x86.Build.0 = Debug|x86
+		{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}.Release|Any CPU.ActiveCfg = Release|x86
+		{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}.Release|Mixed Platforms.Build.0 = Release|x86
+		{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}.Release|x86.ActiveCfg = Release|x86
+		{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
