@@ -44,6 +44,7 @@
     <None Include="App.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Compile Include="IL.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
