@@ -33,7 +33,7 @@
         member x.matchChar(c : char) = 
             match x.look with 
             | c when x.look = c -> x.getChar()
-            | _ -> x.expected(c.ToString())
+            | _                 -> x.expected(c.ToString())
 
         member x.getName() =
             if Char.IsLetter(x.look) then
@@ -47,13 +47,6 @@
             if Char.IsNumber(x.look) then
                 let c = Char.ToUpperInvariant(x.look)
                 x.getChar()
-                c
+                System.Int32.Parse(string(c))
             else
                 failwith "Expected Integer"
-
-        member x.emit(s : string) = 
-            output.Write(tab + s)
-
-        member x.emitLn(s) = 
-            x.emit(s)
-            output.WriteLine()

@@ -2,7 +2,7 @@
 
     open System
     open System.IO
-    open System.Collections
+    open IL
 
     type ExpressionParsing(keyReader: unit -> char, output : TextWriter) = 
         inherit Cradle(keyReader, output)
@@ -71,14 +71,11 @@
 
         member x.add() =
             x.matchChar('+')
-            x.term()
-            x.emitLn("ADD (SP)+,D0")
+            x.term() @ [ IL.Add ]
 
         member x.subtract() =
             x.matchChar('-')
-            x.term()
-            x.emitLn("SUB (SP)+,D0")
-            x.emitLn("NEG D0")
+            x.term() @ [ IL.Sub ]
 
 //        member x.factor() = 
 //            // <factor> ::= <number> -- changed later!
@@ -86,42 +83,44 @@
 
         member x.multiply() =
             x.matchChar('*')
-            x.factor()
-            x.emitLn("MULS (SP)+,D0")
+            x.factor() @ [ IL.Mul ]
 
         member x.divide() =
             x.matchChar('/')
-            x.factor()
-            x.emitLn("MOVE (SP)+,D1")
-            x.emitLn("DIVS D1,D0")
+            x.factor() @ [ IL.Div ]
 
         member x.term() = 
             // <term> ::= <factor>  [ <mulop> <factor> ]*
-            x.factor()
+            let mutable result = x.factor()
             let mulops = set [ '*'; '/' ]
             while Set.contains x.look mulops do
-                x.emitLn("MOVE D0,-(SP)")
+                result <- result @ [ IL.Ldloc_0 ]
                 match x.look with
-                | '*' -> x.multiply()
-                | '/' -> x.divide()
-                | _   -> x.expected("Mulop")            
+                    | '*' -> result <- result @ x.multiply()
+                    | '/' -> result <- result @ x.divide()
+                    | _   -> x.expected("Mulop") 
+            result
 
-        member x.factor() = 
+        member x.factor() : list<IL.instruction> = 
             // <factor> ::= (<expression>)
-            match x.look with
-            | '(' -> x.matchChar('('); x.expression(); x.matchChar(')'); 
-            | _   -> x.emitLn(String.Format("MOVE #{0},D0", x.getNum()))
-
+            if x.look = '(' then
+                x.matchChar('(')
+                let expr = x.expression()
+                x.matchChar(')')
+                expr
+            else
+                [ IL.Ldc_I4(x.getNum()) ]
 
         member x.expression() = 
             // <expression> ::= [<addop>] <term> [<addop> <term>]*
             if isAddop x.look then
-                x.emitLn("CLR D0")
+                [IL.Ldc_I4_0]
             else
-                x.term()
-            while isAddop x.look do
-                x.emitLn("MOVE D0,-(SP)")
-                match x.look with
-                | '+' -> x.add()
-                | '-' -> x.subtract()
-                | _   -> x.expected("Addop")
+                let mutable result = x.term()
+                while isAddop x.look do
+                    result <- result @ [ IL.Ldloc_0 ]
+                    match x.look with
+                    | '+' -> result <- result @ x.add()
+                    | '-' -> result <- result @ x.subtract()
+                    | _   -> x.expected("Addop")
+                result

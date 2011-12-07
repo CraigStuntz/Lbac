@@ -9,7 +9,7 @@ let main() =
        let cki = Console.ReadKey()
        cki.KeyChar
     let cradle = new Lbac.ExpressionParsing(keyReader, outputStream)
-    cradle.expression()
+    ignore cradle.expression
     ignore( Console.ReadLine() )
 
 main()
