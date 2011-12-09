@@ -71,7 +71,7 @@
 
         member x.add() =
             x.matchChar('+')
-            x.term() @ [ IL.Add ]
+            x.term() @ [ IL.Ldloc_0; IL.Add ]
 
         member x.subtract() =
             x.matchChar('-')
@@ -109,18 +109,20 @@
                 x.matchChar(')')
                 expr
             else
-                [ IL.Ldc_I4(x.getNum()) ]
+                [ IL.Ldc_I4(x.getNum()) ; 
+                  IL.Stloc_0 ]
 
         member x.expression() = 
             // <expression> ::= [<addop>] <term> [<addop> <term>]*
-            if isAddop x.look then
-                [IL.Ldc_I4_0]
-            else
-                let mutable result = x.term()
-                while isAddop x.look do
-                    result <- result @ [ IL.Ldloc_0 ]
-                    match x.look with
-                    | '+' -> result <- result @ x.add()
-                    | '-' -> result <- result @ x.subtract()
-                    | _   -> x.expected("Addop")
-                result
+            let mutable result = if isAddop x.look then
+                                    [IL.Ldc_I4_0; 
+                                     IL.Stloc_0]
+                                 else
+                                    x.term()
+            while isAddop x.look do
+                result <- result @ [ IL.Ldloc_0 ]
+                match x.look with
+                | '+' -> result <- result @ x.add()
+                | '-' -> result <- result @ x.subtract()
+                | _   -> x.expected("Addop")
+            result

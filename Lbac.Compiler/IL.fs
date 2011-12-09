@@ -5,8 +5,9 @@
 
     type instruction = 
         | Add 
+        | DeclareLocal of System.Type
         | Div
-        | Ldc_I4    of int
+        | Ldc_I4       of int
         | Ldc_I4_0
         | Ldloc_0
         | Ldloc_1
@@ -18,39 +19,45 @@
 
     let emit (ilg : Emit.ILGenerator) inst = 
         match inst with 
-        | Add        -> ilg.Emit(OpCodes.Add)
-        | Div        -> ilg.Emit(OpCodes.Div)
-        | Ldc_I4   n -> ilg.Emit(OpCodes.Ldc_I4, n)
-        | Ldc_I4_0   -> ilg.Emit(OpCodes.Ldc_I4_0)
-        | Ldloc_0    -> ilg.Emit(OpCodes.Ldloc_0)
-        | Ldloc_1    -> ilg.Emit(OpCodes.Ldloc_1)
-        | Mul        -> ilg.Emit(OpCodes.Mul)
-        | Ret        -> ilg.Emit(OpCodes.Ret)
-        | Stloc_0    -> ilg.Emit(OpCodes.Stloc_0)
-        | Stloc_1    -> ilg.Emit(OpCodes.Stloc_1)
-        | Sub        -> ilg.Emit(OpCodes.Sub)
+        | Add            -> ilg.Emit(OpCodes.Add)
+        | DeclareLocal t -> ignore(ilg.DeclareLocal(t))
+        | Div            -> ilg.Emit(OpCodes.Div)
+        | Ldc_I4   n     -> ilg.Emit(OpCodes.Ldc_I4, n)
+        | Ldc_I4_0       -> ilg.Emit(OpCodes.Ldc_I4_0)
+        | Ldloc_0        -> ilg.Emit(OpCodes.Ldloc_0)
+        | Ldloc_1        -> ilg.Emit(OpCodes.Ldloc_1)
+        | Mul            -> ilg.Emit(OpCodes.Mul)
+        | Ret            -> ilg.Emit(OpCodes.Ret)
+        | Stloc_0        -> ilg.Emit(OpCodes.Stloc_0)
+        | Stloc_1        -> ilg.Emit(OpCodes.Stloc_1)
+        | Sub            -> ilg.Emit(OpCodes.Sub)
 
-    let compileMethod(instructions: seq<instruction>) =
+    let compileMethod(instructions: seq<instruction>) (methodResultType) =
         let moduleName = "test" 
         let className = "CompiledCode"
         let entryPoint = "Main"
         let an = new AssemblyName(moduleName)
-        let ab = AppDomain.CurrentDomain.DefineDynamicAssembly(an, AssemblyBuilderAccess.Run)
+        let ab = AppDomain.CurrentDomain.DefineDynamicAssembly(an, AssemblyBuilderAccess.RunAndSave)
         let modb = ab.DefineDynamicModule moduleName 
         let tb = modb.DefineType(className, TypeAttributes.Public)
-        let mb = tb.DefineMethod(entryPoint, MethodAttributes.Public, null, null)
+
+        let mb = tb.DefineMethod(entryPoint, MethodAttributes.Public, methodResultType, System.Type.EmptyTypes)
         let ilg = mb.GetILGenerator() |> emit
+        let declare = DeclareLocal typeof<int>
+        ilg declare
         for instruction in instructions do
             ilg instruction
         ilg Ret
+        
         let t = tb.CreateType()
         modb.CreateGlobalFunctions()
+        ab.Save(moduleName)
         (t, mb)
 
-    let execute instructions =
-        let (t, m) = compileMethod instructions
+    let execute<'TMethodResultType> instructions =
+        let (t, m) = compileMethod instructions typeof<'TMethodResultType>
         let instance = Activator.CreateInstance(t)
-        t.GetMethod("Main").Invoke(instance, null)
+        t.GetMethod("Main").Invoke(instance, null) :?> 'TMethodResultType
 
     let print (instructions: seq<instruction>) =
         let p = sprintf "%A"

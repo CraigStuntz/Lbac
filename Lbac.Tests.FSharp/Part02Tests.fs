@@ -20,7 +20,7 @@
                     | _  -> System.Convert.ToChar(c);
             let parser = new ExpressionParsing(kr, sw)
             let il = parser.expression()
-            IL.execute il
+            IL.execute<System.Int32> il 
 
         [<TestMethod>]
         member x.testTerm() = 
@@ -39,48 +39,47 @@
         [<TestMethod>]
         member x.testExpression() = 
             let input = "1+2";
-            let expected = System.String.Format("{0}MOVE #1,D0{1}{0}MOVE D0,-(SP){1}{0}MOVE #2,D0{1}{0}ADD (SP)+,D0{1}", '\t', System.Environment.NewLine);
+            let expected = 3;
 
             let actual = execute input
 
-            Assert.AreEqual(expected, actual.ToString())
+            Assert.AreEqual(expected, actual)
 
         [<TestMethod>]
         member x.testThreeTermExpression() = 
-            let input = "1+2-5";
-            let expected = System.String.Format("{0}MOVE #1,D0{1}{0}MOVE D0,-(SP){1}{0}MOVE #2,D0{1}{0}ADD (SP)+,D0{1}{0}MOVE D0,-(SP){1}{0}MOVE #5,D0{1}{0}SUB (SP)+,D0{1}{0}NEG D0{1}", '\t', System.Environment.NewLine);
+            let input = "1+2-5"
+            let expected = -2
 
             let actual = execute input
 
-            Assert.AreEqual(expected, actual.ToString())
+            Assert.AreEqual(expected, actual)
 
         [<TestMethod>]
         member x.testMultiplyDivide() = 
             let input = "2+3*4";
-            let expected = System.String.Format("{0}MOVE #2,D0{1}{0}MOVE D0,-(SP){1}{0}MOVE #3,D0{1}{0}MOVE D0,-(SP){1}{0}MOVE #4,D0{1}{0}MULS (SP)+,D0{1}{0}ADD (SP)+,D0{1}", '\t', System.Environment.NewLine);
+            let expected = 14;
 
             let actual = execute input
 
-            Assert.AreEqual(expected, actual.ToString())
+            Assert.AreEqual(expected, actual)
 
         [<TestMethod>]
         member x.testParenthesizedExpression() = 
-            let input = "(1+2)/((3+4)+(5-6))";
-            let expectedLastInstruction = System.String.Format("DIVS D1,D0{0}", System.Environment.NewLine);
+            let input = "(1+2)*((3+4)+(5-6))"
+            let expected = 18
 
             let actual = execute input
 
-            // this produces quite a bit of code, so just verify that the DIVS is last. 
-            Assert.IsTrue(actual.ToString().EndsWith(expectedLastInstruction))
+            Assert.AreEqual(expected, actual)
 
         [<TestMethod>]
         member x.testUnaryMinus() = 
             let input = "-1"; // compiler should treat as "0-1"
-            let expected = System.String.Format("{0}CLR D0{1}{0}MOVE D0,-(SP){1}{0}MOVE #1,D0{1}{0}SUB (SP)+,D0{1}{0}NEG D0{1}", '\t', System.Environment.NewLine);
+            let expected = -1;
 
             let actual = execute input
 
-            Assert.AreEqual(expected, actual.ToString())
+            Assert.AreEqual(expected, actual)
 
     end
 
