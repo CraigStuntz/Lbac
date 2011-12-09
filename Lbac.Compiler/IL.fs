@@ -33,15 +33,17 @@
         | Sub            -> ilg.Emit(OpCodes.Sub)
 
     let compileMethod(instructions: seq<instruction>) (methodResultType) =
-        let moduleName = "test" 
+        let assemName = "test.exe" 
         let className = "CompiledCode"
         let entryPoint = "Main"
-        let an = new AssemblyName(moduleName)
+        let moduleName = "TestModule"
+        let an = new AssemblyName(assemName)
         let ab = AppDomain.CurrentDomain.DefineDynamicAssembly(an, AssemblyBuilderAccess.RunAndSave)
-        let modb = ab.DefineDynamicModule moduleName 
-        let tb = modb.DefineType(className, TypeAttributes.Public)
-
-        let mb = tb.DefineMethod(entryPoint, MethodAttributes.Public, methodResultType, System.Type.EmptyTypes)
+        let modb = ab.DefineDynamicModule(moduleName, assemName)
+        let ta = TypeAttributes.Public ||| TypeAttributes.AutoLayout ||| TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit
+        let tb = modb.DefineType(className, ta)
+        let ma = MethodAttributes.Public ||| MethodAttributes.HideBySig
+        let mb = tb.DefineMethod(entryPoint, ma, methodResultType, System.Type.EmptyTypes)
         let ilg = mb.GetILGenerator() |> emit
         let declare = DeclareLocal typeof<int>
         ilg declare
