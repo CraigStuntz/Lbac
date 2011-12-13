@@ -37,9 +37,18 @@
             Assert.AreEqual(1, arg)
 
         [<TestMethod>]
-        member x.testExpression() = 
+        member x.testAddition() = 
             let input = "1+2";
             let expected = 3;
+
+            let actual = execute input
+
+            Assert.AreEqual(expected, actual)
+
+        [<TestMethod>]
+        member x.testSubtraction() = 
+            let input = "1-2";
+            let expected = -1;
 
             let actual = execute input
 
@@ -55,9 +64,18 @@
             Assert.AreEqual(expected, actual)
 
         [<TestMethod>]
-        member x.testMultiplyDivide() = 
+        member x.testMultiply() = 
             let input = "2+3*4";
             let expected = 14;
+
+            let actual = execute input
+
+            Assert.AreEqual(expected, actual)
+
+        [<TestMethod>]
+        member x.testDivide() = 
+            let input = "6/2";
+            let expected = 3;
 
             let actual = execute input
 
