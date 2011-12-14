@@ -5,13 +5,20 @@
 
     type instruction = 
         | Add 
+        | Call         of System.Reflection.MethodInfo
+        | Callvirt     of System.Reflection.MethodInfo
         | DeclareLocal of System.Type
         | Div
         | Ldc_I4       of int
         | Ldc_I4_0
         | Ldloc_0
         | Ldloc_1
+        | Ldloca_s     of byte
         | Mul
+        | Newobj       of System.Reflection.ConstructorInfo
+        | Nop
+        | Pop
+        | Refanyval
         | Ret
         | Stloc_0
         | Stloc_1
@@ -20,46 +27,78 @@
     let emit (ilg : Emit.ILGenerator) inst = 
         match inst with 
         | Add            -> ilg.Emit(OpCodes.Add)
+        | Call mi        -> ilg.Emit(OpCodes.Call, mi)
+        | Callvirt mi    -> ilg.Emit(OpCodes.Callvirt, mi)
         | DeclareLocal t -> ignore(ilg.DeclareLocal(t))
         | Div            -> ilg.Emit(OpCodes.Div)
         | Ldc_I4   n     -> ilg.Emit(OpCodes.Ldc_I4, n)
         | Ldc_I4_0       -> ilg.Emit(OpCodes.Ldc_I4_0)
         | Ldloc_0        -> ilg.Emit(OpCodes.Ldloc_0)
         | Ldloc_1        -> ilg.Emit(OpCodes.Ldloc_1)
+        | Ldloca_s b     -> ilg.Emit(OpCodes.Ldloca_S, b)
         | Mul            -> ilg.Emit(OpCodes.Mul)
+        | Newobj ci      -> ilg.Emit(OpCodes.Newobj, ci)
+        | Nop            -> ilg.Emit(OpCodes.Nop)
+        | Pop            -> ilg.Emit(OpCodes.Pop)
+        | Refanyval      -> ilg.Emit(OpCodes.Refanyval)
         | Ret            -> ilg.Emit(OpCodes.Ret)
         | Stloc_0        -> ilg.Emit(OpCodes.Stloc_0)
         | Stloc_1        -> ilg.Emit(OpCodes.Stloc_1)
         | Sub            -> ilg.Emit(OpCodes.Sub)
 
+    let compileEntryPoint (moduleContainingMethod : System.Reflection.Emit.ModuleBuilder) (methodToCall: System.Reflection.Emit.MethodBuilder) = 
+        let className = "Program"
+        let ta = TypeAttributes.NotPublic ||| TypeAttributes.AutoLayout ||| TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit
+        let tb = moduleContainingMethod.DefineType(className, ta)
+        let ma = MethodAttributes.Public ||| MethodAttributes.Static 
+        let methodName = "Main"
+        let mb = tb.DefineMethod(methodName, ma)
+        let ilg = mb.GetILGenerator() |> emit
+        let ci = methodToCall.ReflectedType.GetConstructor([||])
+        ilg (Newobj ci)
+        ilg (Call methodToCall)
+        if methodToCall.ReturnType <> null then
+            ilg (DeclareLocal methodToCall.ReturnType)
+            ilg Stloc_0
+            ilg (Ldloca_s 0uy)
+            let mi = methodToCall.ReturnType.GetMethod("ToString", [||])
+            ilg (Call mi)
+            let writeln = typeof<System.Console>.GetMethod("WriteLine", [| typeof<System.String> |])
+            ilg (Call writeln)
+        ilg Ret
+        let t = tb.CreateType()
+        mb
+
     let compileMethod(instructions: seq<instruction>) (methodResultType) =
-        let assemName = "test.exe" 
+        let assemName = "Test" 
         let className = "CompiledCode"
-        let entryPoint = "Main"
-        let moduleName = "TestModule"
+        let methodName = "MethodName"
+        let moduleName = "test.exe"
         let an = new AssemblyName(assemName)
         let ab = AppDomain.CurrentDomain.DefineDynamicAssembly(an, AssemblyBuilderAccess.RunAndSave)
-        let modb = ab.DefineDynamicModule(moduleName, assemName)
+        let modb = ab.DefineDynamicModule(moduleName)
         let ta = TypeAttributes.Public ||| TypeAttributes.AutoLayout ||| TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit
         let tb = modb.DefineType(className, ta)
         let ma = MethodAttributes.Public ||| MethodAttributes.HideBySig
-        let mb = tb.DefineMethod(entryPoint, ma, methodResultType, System.Type.EmptyTypes)
+        let mb = tb.DefineMethod(methodName, ma, methodResultType, System.Type.EmptyTypes)
         let ilg = mb.GetILGenerator() |> emit
-        let declare = DeclareLocal typeof<int>
-        ilg declare
+        ilg (DeclareLocal typeof<int>)
         for instruction in instructions do
             ilg instruction
         ilg Ret
         
         let t = tb.CreateType()
+        let ep = compileEntryPoint modb mb
+        ab.SetEntryPoint(ep, PEFileKinds.ConsoleApplication)
         modb.CreateGlobalFunctions()
-        ab.Save(moduleName)
-        (t, mb)
+        (t, ab)
 
-    let execute<'TMethodResultType> instructions =
-        let (t, m) = compileMethod instructions typeof<'TMethodResultType>
+    let execute<'TMethodResultType> (instructions, saveToDisk) =
+        let (t, ab) = compileMethod instructions typeof<'TMethodResultType>
+        if saveToDisk then 
+            ab.Save(t.Module.ScopeName)
         let instance = Activator.CreateInstance(t)
-        t.GetMethod("Main").Invoke(instance, null) :?> 'TMethodResultType
+        t.GetMethod("MethodName").Invoke(instance, null) :?> 'TMethodResultType
 
     let print (instructions: seq<instruction>) =
         let p = sprintf "%A"

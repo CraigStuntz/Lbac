@@ -20,7 +20,7 @@
                     | _  -> System.Convert.ToChar(c);
             let parser = new ExpressionParsing(kr, sw)
             let il = parser.expression()
-            IL.execute<System.Int32> il 
+            IL.execute<System.Int32> (il, false) // change false to true to save assembly to disk -- useful for running PEVerify.
 
         [<TestMethod>]
         member x.testTerm() = 
