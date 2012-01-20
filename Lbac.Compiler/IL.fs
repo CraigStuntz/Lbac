@@ -69,11 +69,10 @@
         let t = tb.CreateType()
         mb
 
-    let compileMethod(instructions: seq<instruction>) (methodResultType) =
-        let assemName = "Test" 
+    let compileMethod(moduleName: string) (instructions: seq<instruction>) (methodResultType) =
+        let assemName = System.IO.Path.ChangeExtension(moduleName, ".exe")
         let className = "CompiledCode"
         let methodName = "MethodName"
-        let moduleName = "test.exe"
         let an = new AssemblyName(assemName)
         let ab = AppDomain.CurrentDomain.DefineDynamicAssembly(an, AssemblyBuilderAccess.RunAndSave)
         let modb = ab.DefineDynamicModule(moduleName)
@@ -93,9 +92,12 @@
         modb.CreateGlobalFunctions()
         (t, ab)
 
-    let execute<'TMethodResultType> (instructions, saveToDisk) =
-        let (t, ab) = compileMethod instructions typeof<'TMethodResultType>
-        if saveToDisk then 
+    let execute<'TMethodResultType> (instructions, saveAs) =
+        let moduleName = match saveAs with
+                         | Some s -> s
+                         | None   -> "test.exe"
+        let (t, ab) = compileMethod moduleName instructions typeof<'TMethodResultType>
+        if saveAs.IsSome then 
             ab.Save(t.Module.ScopeName)
         let instance = Activator.CreateInstance(t)
         t.GetMethod("MethodName").Invoke(instance, null) :?> 'TMethodResultType

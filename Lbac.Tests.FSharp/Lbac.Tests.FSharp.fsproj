@@ -43,6 +43,7 @@
     </None>
     <Compile Include="Part01Tests.fs" />
     <Compile Include="Part02Tests.fs" />
+    <Compile Include="CommandLineTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">

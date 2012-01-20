@@ -5,8 +5,6 @@ F# translation of Jack Crenshaw's Pascal code from his article, "[Let's Build A 
 
 This code is not idiomatic F#. That may change in the future, but for the time being I'm translating Crenshaw's Pascal in a fairly literal way.
 
-Future plans include finishing the series and emitting .NET IL instead of 68000 asm.
-
 Have fun!
 
 Running the Application
@@ -17,6 +15,15 @@ Start by running the tests. Note because Visual Studio's support for tests in F#
 So do a build and then run all tests in the solution.
 
 You can also use the compiler interactively. Run the project Lbac.Compiler and it will compile as you type.
+
+Finally, you can run non-interactively, using files:
+
+	> copy con > Foo.txt
+	  1+2
+	  ^C
+	> Lbac.Compiler -i Foo.txt -o Bar.exe
+
+This produces a console application which returns the result (3!).
 
 License
 =======
