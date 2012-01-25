@@ -12,13 +12,7 @@
             let actual = new StringBuilder()
             let sw = new StringWriter(actual)
             let sr = new StringReader(input)
-            let kr() = 
-                let c = sr.Read()
-                match c with 
-                    | -1 -> 
-                    '\u0000'
-                    | _  -> System.Convert.ToChar(c);
-            let parser = new ExpressionParsing(kr, sw)
+            let parser = new ExpressionParsing(sr, sw)
             let il = parser.expression()
             IL.execute<System.Int32> (il, None) // change false to true to save assembly to disk -- useful for running PEVerify.
 
@@ -26,8 +20,7 @@
         member x.testTerm() = 
             let actual = new StringBuilder()
             let sw = new StringWriter(actual)
-            let kr() = '1';
-            let parser = new ExpressionParsing(kr, sw)
+            let parser = new ExpressionParsing(new StringReader("1"), sw)
 
             let actual = parser.term()
             let arg = match actual.Head with

@@ -11,9 +11,8 @@
         member x.testInit() = 
             let actual = new StringBuilder()
             let sw = new StringWriter(actual)
-            let kr() = '1';
 
-            let cradle = new Cradle(kr, sw)
+            let cradle = new Cradle(new StringReader("1"), sw)
 
             // the introduction "cradle" code doesn't actually do anything.
             Assert.AreEqual("", actual.ToString())

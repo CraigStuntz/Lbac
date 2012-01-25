@@ -4,8 +4,8 @@
     open System.IO
     open IL
 
-    type ExpressionParsing(keyReader: unit -> char, output : TextWriter) = 
-        inherit Cradle(keyReader, output)
+    type ExpressionParsing(input : TextReader, errorWriter : TextWriter) = 
+        inherit Cradle(input, errorWriter)
         
 // Introduced later, but F# likes it above members.
 

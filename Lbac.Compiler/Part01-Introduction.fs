@@ -3,7 +3,7 @@
     open System
     open System.IO
 
-    type Cradle(keyReader: unit -> char, output : TextWriter) as x =
+    type Cradle(input : TextReader, errorWriter : TextWriter) as x =
         let mutable _look = '\u0000'
         let tab = "\t"
 
@@ -16,11 +16,11 @@
             and set value = _look <- value
 
         member x.getChar() = 
-            x.look <- char( keyReader() )
+            x.look <- char( input.Read() )
 
         member x.error(s : string) = 
-            output.WriteLine()
-            output.WriteLine("Error: {0}.", s)
+            errorWriter.WriteLine()
+            errorWriter.WriteLine("Error: {0}.", s)
 
         member x.abort(s : string) =
             x.error(s)
