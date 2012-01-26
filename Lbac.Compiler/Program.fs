@@ -12,7 +12,6 @@ let runInteractive() =
     printfn "%A" il
     Console.ReadLine() |> ignore
 
-
 let runWithFiles inFile outFile = 
     let input = File.ReadAllText(inFile)
     let reader = new StringReader(input)
