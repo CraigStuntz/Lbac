@@ -4,13 +4,17 @@
     open System.IO
     open IL
 
-    type ExpressionParsing(input : TextReader, errorWriter : TextWriter) = 
+    type ExpressionParsing(input, errorWriter) = 
         inherit Cradle(input, errorWriter)
         
 // Introduced later, but F# likes it above members.
 
         let isAddop(c) = 
             let addops = set [ '+'; '-' ]
+            Set.contains c addops
+
+        let isMulop(c) = 
+            let addops = set [ '*'; '/' ]
             Set.contains c addops
 
 //        Crenshaw starts Chapter 2 by calling this method "Expression" and then
@@ -92,8 +96,7 @@
         member x.term() = 
             // <term> ::= <factor>  [ <mulop> <factor> ]*
             let mutable result = x.factor()
-            let mulops = set [ '*'; '/' ]
-            while Set.contains x.look mulops do
+            while isMulop x.look do
                 match x.look with
                     | '*' -> result <- result @ x.multiply()
                     | '/' -> result <- result @ x.divide()
@@ -102,13 +105,12 @@
 
         member x.factor() : list<IL.instruction> = 
             // <factor> ::= (<expression>)
-            if x.look = '(' then
-                x.matchChar('(')
-                let expr = x.expression()
-                x.matchChar(')')
-                expr
-            else
-                [IL.Ldc_I4(x.getNum())]
+            match x.look with
+            | '(' -> x.matchChar('(')
+                     let expr = x.expression()
+                     x.matchChar(')')
+                     expr
+            | _   -> [IL.Ldc_I4(x.getNum())]
 
         member x.expression() = 
             // <expression> ::= [<addop>] <term> [<addop> <term>]*
