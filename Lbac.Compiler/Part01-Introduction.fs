@@ -19,27 +19,23 @@
         member x.expected(s: string) = 
             error(s + " Expected")
 
-        // Crenshaw calls this "Match", but match is reserved in F#
+        /// <summary>
+        /// Crenshaw calls this "Match", but match is reserved in F#
+        /// </summary>
         member x.matchChar(c : char) = 
             match x.look with 
             | c when x.look = c -> getChar()
             | _                 -> x.expected(c.ToString())
 
         member x.getName() =
-            if Char.IsLetter(x.look) then
-                let c = Char.ToUpperInvariant(x.look)
-                getChar()
-                c
-            else
-                x.expected "Name"
+            match x.look with
+            | c when Char.IsLetter(c) -> getChar(); c |> Char.ToUpperInvariant
+            | _                       -> x.expected "Name"
 
         member x.getNum() =
-            if Char.IsNumber(x.look) then
-                let c = x.look
-                getChar()
-                System.Int32.Parse(string(c))
-            else
-                x.expected "Integer"
+            match x.look with
+            | c when Char.IsNumber(c) -> getChar(); c |> string |> System.Int32.Parse
+            | _                       -> x.expected "Integer"
 
         abstract member compile: unit -> instruction list
         default x.compile() = 
