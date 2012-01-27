@@ -4,7 +4,7 @@
     open System.IO
     open IL
 
-    type Cradle(input : TextReader, errorWriter : TextWriter) =
+    type Cradle(input : TextReader) =
 
         let tab = "\t"
 

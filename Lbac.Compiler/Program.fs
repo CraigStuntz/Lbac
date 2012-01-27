@@ -4,8 +4,8 @@ open System
 open System.IO
 open IL
 
-let run(reader, writer) = 
-    let parser = new Lbac.ExpressionParsing(reader, writer)
+let run(reader) = 
+    let parser = new Lbac.ExpressionParsing(reader)
     try 
         parser.compile()
     with
@@ -13,14 +13,14 @@ let run(reader, writer) =
                                 List.empty<instruction>
 
 let runInteractive() = 
-    let il = run(Console.In, Console.Error)
+    let il = run(Console.In)
     printfn "%A" il
     Console.ReadLine() |> ignore
 
 let runWithFiles inFile outFile = 
     let input = File.ReadAllText(inFile)
     let reader = new StringReader(input)
-    let il = run(reader, Console.Error)
+    let il = run(reader)
     let moduleName = match outFile with
                      | Some s -> s
                      | None   -> IO.Path.ChangeExtension(inFile, ".exe")

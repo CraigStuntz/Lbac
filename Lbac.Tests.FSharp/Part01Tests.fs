@@ -10,12 +10,9 @@
         [<TestMethod>]
         member x.testInit() = 
             let actual = new StringBuilder()
-            let sw = new StringWriter(actual)
 
-            let cradle = new Cradle(new StringReader("1"), sw)
-
-            // the introduction "cradle" code doesn't actually do anything.
-            Assert.AreEqual("", actual.ToString())
+            let cradle = new Cradle(new StringReader("1"))
+            cradle.compile() |> ignore
     end
 
 
