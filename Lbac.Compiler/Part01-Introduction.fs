@@ -2,18 +2,14 @@
 
     open System
     open System.IO
+    open IL
 
     type Cradle(input : TextReader, errorWriter : TextWriter) =
 
         let tab = "\t"
 
         let error(s : string) = 
-            errorWriter.WriteLine()
-            errorWriter.WriteLine("Error: {0}.", s)
-
-        let abort(s : string) =
-            error(s)
-            System.Environment.Exit(-1)
+            raise (SyntaxException(s))
 
         let getChar() = input.Read() |> ignore
 
@@ -21,7 +17,7 @@
             with get() = input.Peek() |> char
 
         member x.expected(s: string) = 
-            abort(s + " Expected")
+            error(s + " Expected")
 
         // Crenshaw calls this "Match", but match is reserved in F#
         member x.matchChar(c : char) = 
@@ -35,7 +31,7 @@
                 getChar()
                 c
             else
-                failwith "Expected Name"
+                x.expected "Name"
 
         member x.getNum() =
             if Char.IsNumber(x.look) then
@@ -43,4 +39,8 @@
                 getChar()
                 System.Int32.Parse(string(c))
             else
-                failwith "Expected Integer"
+                x.expected "Integer"
+
+        abstract member compile: unit -> instruction list
+        default x.compile() = 
+            List.empty<instruction>

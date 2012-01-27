@@ -41,6 +41,7 @@
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
   <ItemGroup>
     <Compile Include="IL.fs" />
+    <Compile Include="SyntaxException.fs" />
     <Compile Include="Part01-Introduction.fs" />
     <Compile Include="Part02-ExpressionParsing.fs" />
     <None Include="App.config">

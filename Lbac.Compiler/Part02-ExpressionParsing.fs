@@ -124,3 +124,6 @@
                 | '-' -> result <- result @ x.subtract()
                 | _   -> x.expected("Addop")
             result
+
+        override x.compile() = 
+            x.expression()

@@ -2,10 +2,15 @@
     
 open System
 open System.IO
+open IL
 
 let run(reader, writer) = 
     let parser = new Lbac.ExpressionParsing(reader, writer)
-    parser.expression()
+    try 
+        parser.compile()
+    with
+        | SyntaxException(m) -> eprintfn "Error: %s" m
+                                List.empty<instruction>
 
 let runInteractive() = 
     let il = run(Console.In, Console.Error)
