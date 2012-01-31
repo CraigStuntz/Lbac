@@ -20,6 +20,7 @@
             error(s + " Expected")
 
         /// <summary>
+        /// Returns argument c if lookahead equals c, throws otherwise. 
         /// Crenshaw calls this "Match", but match is reserved in F#
         /// </summary>
         member x.matchChar(c : char) = 

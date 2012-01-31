@@ -114,16 +114,18 @@
 
         member x.expression() = 
             // <expression> ::= [<addop>] <term> [<addop> <term>]*
-            let mutable result = if isAddop x.look then
-                                    [IL.Ldc_I4_0]
-                                 else
-                                    x.term()
-            while isAddop x.look do
-                match x.look with
-                | '+' -> result <- result @ x.add()
-                | '-' -> result <- result @ x.subtract()
-                | _   -> x.expected("Addop")
-            result
+            let head = if isAddop x.look then
+                           [IL.Ldc_I4_0]
+                       else
+                           x.term()
+            // rest of expression is evaluated recurively for forms like 1+2-3+4...
+            x.expressionTail head
+
+        member private x.expressionTail head = 
+            match x.look with
+            | '+' -> x.expressionTail( head @ x.add()      )
+            | '-' -> x.expressionTail( head @ x.subtract() )
+            | _   -> head
 
         override x.compile() = 
             x.expression()
