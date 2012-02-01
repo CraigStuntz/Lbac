@@ -7,72 +7,6 @@
     type ExpressionParsing(input) = 
         inherit Cradle(input)
         
-// Introduced later, but F# likes it above members.
-
-        let isAddop(c) = 
-            let addops = set [ '+'; '-' ]
-            Set.contains c addops
-
-        let isMulop(c) = 
-            let addops = set [ '*'; '/' ]
-            Set.contains c addops
-
-//        Crenshaw starts Chapter 2 by calling this method "Expression" and then
-//        changes the name to "Term" later on. This is replaced when we get to *,/
-//        member x.term() = 
-//            x.emitLn(String.Format("MOVE #{0},D0", x.getNum()))
-
-//        This method is changed later in Chapter 2. 
-//        This version can only handle expressions like "1+2" or "2-1"
-//        member x.expression() = 
-//            x.term()
-//            x.emitLn("MOVE D0,D1")
-//            match x.look with
-//            | '+' -> x.add()
-//            | '-' -> x.subtract()
-//            | _   -> x.expected("Addop")
-
-//        This version can handle 1+3-2; again, it's replaced below with a "stack" version
-//        member x.expression() = 
-//            x.term()
-//            let arithmeticOperators = set [ '+'; '-' ]
-//            while Set.contains x.look arithmeticOperators do
-//                x.emitLn("MOVE D0,D1")
-//                match x.look with
-//                | '+' -> x.add()
-//                | '-' -> x.subtract()
-//                | _   -> x.expected("Addop")
-
-//        Replaced later with "stack" version            
-//        member x.add() =
-//            x.matchChar('+')
-//            x.term()
-//            x.emitLn("ADD D1,D0")
-
-//        This first "buggy" subtract is replaced later in the chapter
-//        member x.subtract() =
-//            x.matchChar('-')
-//            x.term()
-//            x.emitLn("SUB D1,D0")
-
-//        Non-buggy version also replaced later with "stack" version            
-//        member x.subtract() =
-//            x.matchChar('-')
-//            x.term()
-//            x.emitLn("SUB D1,D0")
-//            x.emitLn("NEG D0")
-
-//        member x.expression() = 
-//            // <expression> ::= <term> [<addop> <term>]*
-//            x.term()
-//            let addops = set [ '+'; '-' ]
-//            while Set.contains x.look addops do
-//                x.emitLn("MOVE D0,-(SP)")
-//                match x.look with
-//                | '+' -> x.add()
-//                | '-' -> x.subtract()
-//                | _   -> x.expected("Addop")
-
         member x.add() =
             x.matchChar('+')
             x.term() @ [ IL.Add ]
@@ -80,10 +14,6 @@
         member x.subtract() =
             x.matchChar('-')
             x.term() @ [ IL.Sub ]
-
-//        member x.factor() = 
-//            // <factor> ::= <number> -- changed later!
-//            x.emitLn(String.Format("MOVE #{0},D0", x.getNum()))
 
         member x.multiply() =
             x.matchChar('*')
@@ -93,18 +23,23 @@
             x.matchChar('/')
             x.factor() @ [ IL.Div ]
 
+        /// <summary>
+        /// <term> ::= <factor>  [ <mulop> <factor> ]*
+        /// </summary>
         member x.term() = 
-            // <term> ::= <factor>  [ <mulop> <factor> ]*
-            let mutable result = x.factor()
-            while isMulop x.look do
-                match x.look with
-                    | '*' -> result <- result @ x.multiply()
-                    | '/' -> result <- result @ x.divide()
-                    | _   -> x.expected("Mulop") 
-            result
+            let head = x.factor()
+            x.termTail head
 
+        member private x.termTail head = 
+            match x.look with
+                | '*' -> x.termTail ( head @ x.multiply() )
+                | '/' -> x.termTail ( head @ x.divide() )
+                | _   -> head 
+
+        /// <summary>
+        /// <factor> ::= (<expression>) | <number>
+        /// </summary>
         member x.factor() : list<IL.instruction> = 
-            // <factor> ::= (<expression>)
             match x.look with
             | '(' -> x.matchChar('(')
                      let expr = x.expression()
@@ -112,9 +47,13 @@
                      expr
             | _   -> [IL.Ldc_I4(x.getNum())]
 
+
+        /// <summary>
+        /// <expression> ::= [<addop>] <term> [<addop> <term>]*
+        /// </summary>
         member x.expression() = 
-            // <expression> ::= [<addop>] <term> [<addop> <term>]*
-            let head = if isAddop x.look then
+            let addops = set [ '+'; '-']
+            let head = if Set.contains x.look addops then
                            [IL.Ldc_I4_0]
                        else
                            x.term()
