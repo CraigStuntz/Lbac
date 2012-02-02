@@ -28,13 +28,12 @@
         /// </summary>
         member x.term() = 
             let head = x.factor()
-            x.termTail head
-
-        member private x.termTail head = 
-            match x.look with
-                | '*' -> x.termTail ( head @ x.multiply() )
-                | '/' -> x.termTail ( head @ x.divide() )
-                | _   -> head 
+            let rec termTail head = 
+                match x.look with
+                    | '*' -> termTail ( head @ x.multiply() )
+                    | '/' -> termTail ( head @ x.divide() )
+                    | _   -> head 
+            termTail head
 
         /// <summary>
         /// <factor> ::= (<expression>) | <number>
@@ -58,13 +57,12 @@
                        else
                            x.term()
             // rest of expression is evaluated recurively for forms like 1+2-3+4...
-            x.expressionTail head
-
-        member private x.expressionTail head = 
-            match x.look with
-            | '+' -> x.expressionTail( head @ x.add()      )
-            | '-' -> x.expressionTail( head @ x.subtract() )
-            | _   -> head
+            let rec expressionTail head = 
+                match x.look with
+                | '+' -> expressionTail( head @ x.add()      )
+                | '-' -> expressionTail( head @ x.subtract() )
+                | _   -> head
+            expressionTail head
 
         override x.compile() = 
             x.expression()
