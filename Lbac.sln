@@ -1,13 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Lbac.Compiler", "Lbac.Compiler\Lbac.Compiler.fsproj", "{C26A4E00-2873-46AB-963C-27ADD62B42EE}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lbac.Tests", "Lbac.Tests\Lbac.Tests.csproj", "{ADC98828-601B-4385-891D-382C5914FAB0}"
-	ProjectSection(ProjectDependencies) = postProject
-		{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7} = {E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}
-	EndProjectSection
-EndProject
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E64BB80B-07D0-49EF-8058-8A5D235EB083}"
 	ProjectSection(SolutionItems) = preProject
 		Lbac.vsmdi = Lbac.vsmdi
@@ -15,6 +8,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Local.testsettings = Local.testsettings
 		Readme.markdown = Readme.markdown
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
+	EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Lbac.Compiler", "Lbac.Compiler\Lbac.Compiler.fsproj", "{C26A4E00-2873-46AB-963C-27ADD62B42EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lbac.Tests", "Lbac.Tests\Lbac.Tests.csproj", "{ADC98828-601B-4385-891D-382C5914FAB0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7} = {E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Lbac.Tests.FSharp", "Lbac.Tests.FSharp\Lbac.Tests.FSharp.fsproj", "{E4A7BDEF-7328-42EA-94E4-ECCCA7EF08C7}"
