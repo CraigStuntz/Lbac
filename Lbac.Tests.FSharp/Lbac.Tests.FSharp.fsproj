@@ -45,8 +45,6 @@
     <None Include="App.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <Compile Include="Part01Tests.fs" />
-    <Compile Include="Part02Tests.fs" />
     <Compile Include="CommandLineTests.fs" />
   </ItemGroup>
   <ItemGroup>
