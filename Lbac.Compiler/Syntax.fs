@@ -1,4 +1,6 @@
 ﻿module Syntax
+    
+    open Lex
 
     type Factor = 
         | Digit of int
