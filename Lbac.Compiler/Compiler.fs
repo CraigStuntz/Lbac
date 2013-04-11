@@ -6,6 +6,7 @@
 
     type Lexer = string -> seq<Token>
     type Parser = seq<Token> -> Expr
+    type Optimizer = Expr -> Expr
     type CodeGenerator = Expr -> seq<instruction>
     type AssemblyEmitter = seq<instruction> -> Assembly
     type Compiler = string -> Assembly
