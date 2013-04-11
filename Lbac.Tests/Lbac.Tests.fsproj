@@ -46,6 +46,7 @@
     <None Include="MSTest.runsettings" />
     <Compile Include="CommandLineTests.fs" />
     <Compile Include="LexerTests.fs" />
+    <Compile Include="SyntaxTests.fs" />
     <Compile Include="Part01Tests.fs" />
     <Compile Include="Part02Tests.fs" />
   </ItemGroup>

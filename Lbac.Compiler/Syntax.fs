@@ -21,3 +21,8 @@
     and Expr = 
         | AddOp of Expr * Term
         | Term of Term
+
+    let parse(tokens: seq<Token>) =
+        let expr tokens = 
+            Term(Factor(Digit(1)))
+        expr tokens 
