@@ -27,6 +27,10 @@
         | Error of string
 
     let parse(tokens: seq<Token>) =
+        let factor = function
+            | Number n :: ts -> Some(Expr.Term(Factor(Digit(n))))
+            | _ -> Error("Number expected") 
+
         let expr tokens = 
             Some(Term(Factor(Digit(1))))
         expr tokens 
