@@ -2,40 +2,36 @@
     
     open Lex
 
-    type Factor = 
-        | Digit of int
-        | ParenExpr of Expr
+    type Operator =
+        | Add
+        | Subtract
+        | Multiply
+        | Divide
 
-    and AddOp =
-        | Plus 
-        | Minus
+    type Expr =
+        | Number of int
+        | Binary of Expr * Operator * Expr
 
-    and MulOp =
-        | Times
-        | DividedBy
-
-    and Term =
-        | MulOp of Term * Factor
-        | Factor of Factor
-
-    and Expr = 
-        | AddOp of Expr * Term
-        | Term of Term
-
-    type Parsed =
-        | Some of Expr
+    type ParseResult =
+        | Parsed of Expr
         | Error of string
 
     let parse(tokens: Token list) =
         let term = function
-            | Number n :: _ -> Some(Expr.Term(Factor(Digit(n))))
+            | Number n :: _ -> Parsed(Number(n))
             | _ -> Error("Number expected")
 
         let factor = function
-            | Number n :: ts -> Some(Expr.Term(Factor(Digit(n))))
-            | _ -> Error("Number expected") 
+            | Number n :: ts -> Parsed(Number(n))
+            | _ -> Error("Number expected")
+            
+        let toAddOp = function
+            | '+' -> Some(Add)
+            | '-' -> Some(Subtract)
+            | _ -> None
 
-        let expr tokens = 
-            term tokens
+        let rec expr = function
+            | [Token.Number n] -> Parsed(Number(n))
+            | _ -> Error("Expression expected")
 
         expr tokens 
