@@ -18,20 +18,35 @@
 
     let parse(tokens: Token list) =
         let term = function
-            | Number n :: _ -> Parsed(Number(n))
-            | _ -> Error("Number expected")
+            | Token.Number n -> Parsed(Number(n))
+            | _              -> Error("Number expected")
 
         let factor = function
             | Number n :: ts -> Parsed(Number(n))
-            | _ -> Error("Number expected")
+            | _              -> Error("Number expected")
             
         let toAddOp = function
-            | '+' -> Some(Add)
-            | '-' -> Some(Subtract)
-            | _ -> None
+            | '+' -> Some(Operator.Add)
+            | '-' -> Some(Operator.Subtract)
+            | _   -> None
 
-        let rec expr = function
-            | [Token.Number n] -> Parsed(Number(n))
+        let rec parseAddOp (leftTerm, symbol, rest) = 
+            match toAddOp symbol with
+            | Some addOp -> 
+                match expr rest with 
+                | Parsed rightTerm -> Parsed(Expr.Binary(leftTerm, addOp, rightTerm))
+                | error            -> error
+            | None -> Error("+ or - expected here.")
+
+        and expr = function
+            | token :: tokens -> 
+                match term(token) with
+                | Parsed(exp) -> 
+                    match tokens with
+                    | [] -> Parsed(exp)
+                    | Symbol s :: rest -> parseAddOp(exp, s, rest)
+                    | wrong    :: _    -> Error("Unexpected token " + wrong.ToString())
+                | error -> error
             | _ -> Error("Expression expected")
 
         expr tokens 

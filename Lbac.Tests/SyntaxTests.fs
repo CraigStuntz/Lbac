@@ -16,7 +16,7 @@ type SyntaxTests() =
 
     [<TestMethod>]
     member x.``should error on garbage`` () = 
-        let expected = Error("Expression expected") 
+        let expected = Error("Number expected") 
         let input = [Symbol('x')]
         let actual = Syntax.parse(input)
         Assert.AreEqual(expected, actual)
