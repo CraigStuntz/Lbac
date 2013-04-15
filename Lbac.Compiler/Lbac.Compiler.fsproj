@@ -48,6 +48,7 @@
     <Compile Include="Syntax.fs" />
     <Compile Include="IL.fs" />
     <Compile Include="Compiler.fs" />
+    <Compile Include="CodeGenerator.fs" />
     <Compile Include="SyntaxException.fs" />
     <Compile Include="Part01-Introduction.fs" />
     <Compile Include="Part02-ExpressionParsing.fs" />
