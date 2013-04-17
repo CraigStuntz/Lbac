@@ -13,7 +13,7 @@
             let sr = new StringReader(input)
             let parser = new ExpressionParsing(sr)
             let il = parser.expression()
-            IL.execute<System.Int32> (il, None) // change false to true to save assembly to disk -- useful for running PEVerify.
+            IL.execute<System.Int32> (il, None) // change None to Some("filename.exe") to save assembly to disk -- useful for running PEVerify.
 
         [<TestMethod>]
         member x.testTerm() = 
