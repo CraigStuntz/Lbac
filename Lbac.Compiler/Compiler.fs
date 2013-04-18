@@ -12,10 +12,3 @@
     let private methodBuilder il = IL.toMethod(il, typedefof<System.Int32>)
 
     let compile = lex >> parse >> optimize >> codeGen >> methodBuilder
-
-    type Lexer = string -> seq<Token>
-    type Parser = seq<Token> -> Expr
-    type Optimizer = Expr -> Expr
-    type CodeGenerator = Expr -> seq<instruction>
-    type AssemblyEmitter = seq<instruction> -> Assembly
-    type Compiler = string -> Assembly
