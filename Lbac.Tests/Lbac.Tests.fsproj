@@ -47,9 +47,10 @@
     <Compile Include="CommandLineTests.fs" />
     <Compile Include="LexerTests.fs" />
     <Compile Include="SyntaxTests.fs" />
+    <Compile Include="CodeGeneratorTests.fs" />
     <Compile Include="Part01Tests.fs" />
     <Compile Include="Part02Tests.fs" />
-    <Compile Include="CodeGeneratorTests.fs" />
+    <Compile Include="ILTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Lbac.Compiler\Lbac.Compiler.fsproj">

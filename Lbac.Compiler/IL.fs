@@ -93,6 +93,12 @@
         modb.CreateGlobalFunctions()
         (t, ab)
 
+    let toMethod(instructions, resultType) =
+        let moduleName = "test.exe"
+        let (t, ab) = compileMethod moduleName instructions resultType
+        let instance = Activator.CreateInstance(t)
+        t.GetMethod(methodName)
+
     let execute<'TMethodResultType> (instructions, saveAs) =
         let moduleName = match saveAs with
                          | Some s -> s
