@@ -1,5 +1,6 @@
 ﻿module Syntax
     
+    open Errors
     open Lex
 
     type Operator =
@@ -12,17 +13,15 @@
         | Number of int
         | Binary of Expr * Operator * Expr
 
-    type ParseResult =
-        | Parsed of Expr
-        | Error of string
+    type ParseResult = Try<Expr, string>
 
     let parse(tokens: Token list) =
         let term = function
-            | Token.Number n -> Parsed(Number(n))
+            | Token.Number n -> Success(Number(n))
             | _              -> Error("Number expected")
 
         let factor = function
-            | Number n :: ts -> Parsed(Number(n))
+            | Number n :: ts -> Success(Number(n))
             | _              -> Error("Number expected")
             
         let toAddOp = function
@@ -34,16 +33,16 @@
             match toAddOp symbol with
             | Some addOp -> 
                 match expr rest with 
-                | Parsed rightTerm -> Parsed(Expr.Binary(leftTerm, addOp, rightTerm))
+                | Success rightTerm -> Success(Expr.Binary(leftTerm, addOp, rightTerm))
                 | error            -> error
             | None -> Error("+ or - expected here.")
 
         and expr = function
             | token :: tokens -> 
                 match term(token) with
-                | Parsed(exp) -> 
+                | Success exp -> 
                     match tokens with
-                    | [] -> Parsed(exp)
+                    | [] -> Success(exp)
                     | Symbol s :: rest -> parseAddOp(exp, s, rest)
                     | wrong    :: _    -> Error("Unexpected token " + wrong.ToString())
                 | error -> error

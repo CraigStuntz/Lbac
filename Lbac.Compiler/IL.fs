@@ -2,6 +2,7 @@
     open System
     open System.Reflection
     open System.Reflection.Emit
+    open Errors
 
     type instruction = 
         | Add 
@@ -94,10 +95,13 @@
         (t, ab)
 
     let toMethod(instructions, resultType) =
-        let moduleName = "test.exe"
-        let (t, ab) = compileMethod moduleName instructions resultType
-        let instance = Activator.CreateInstance(t)
-        t.GetMethod(methodName)
+        match instructions with 
+            | Success il -> 
+                let moduleName = "test.exe"
+                let (t, ab) = compileMethod moduleName il resultType
+                let instance = Activator.CreateInstance(t)
+                Success(t.GetMethod(methodName))
+            | Error e -> Error(e)
 
     let execute<'TMethodResultType> (instructions, saveAs) =
         let moduleName = match saveAs with

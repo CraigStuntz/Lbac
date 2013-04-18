@@ -1,5 +1,6 @@
 ﻿module CodeGenerator
 
+    open Errors
     open IL
     open Syntax
 
@@ -10,15 +11,21 @@
         | Divide -> instruction.Div
 
     let rec codegen = function
-        | Number n -> 
-            match n with
-            | 0 -> [Ldc_I4_0]
-            | _ -> [Ldc_I4 n]
-        | Binary (lhs, oper, rhs) -> 
-            let lhsIl = codegen lhs
-            let rhsIl = codegen rhs
-            let operInst = codegen_oper oper
-            List.concat [ lhsIl; rhsIl; [operInst] ]
+        | Success expr -> 
+            match expr with
+            | Number n -> 
+                match n with
+                | 0 -> Success([Ldc_I4_0])
+                | _ -> Success([Ldc_I4 n])
+            | Binary (lhs, oper, rhs) -> 
+                let lhsIl = codegen(Success(lhs))
+                let rhsIl = codegen(Success(rhs))
+                let operInst = codegen_oper oper
+                match (lhsIl, rhsIl) with
+                    | (Success l, Success r) -> Success(List.concat [ l; r; [operInst] ])
+                    | (Error l, _) -> lhsIl
+                    | (_, Error r) -> rhsIl
+        | Error(e) -> Error(e)
 
         
 
