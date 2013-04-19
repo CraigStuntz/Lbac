@@ -8,23 +8,30 @@ open Syntax
 
 [<TestClass>]
 type SyntaxTests() = 
-    [<TestMethod>]
-    member x.``should parse 12`` () = 
-        let expected = Try<Expr, string>.Success(Expr.Number(11))
-        let input = [Token.Number(11)]
+    let shouldFailWith input expected = 
         let actual = Syntax.parse(input)
-        Assert.AreEqual(expected, actual)
+        match actual with 
+        | Success _ -> Assert.Fail("Expected " + expected)
+        | Error e -> Assert.AreEqual(expected, e)
+
+    let shouldParseTo input expected = 
+        let actual = Syntax.parse(input)
+        match actual with 
+        | Success parsed -> Assert.AreEqual(expected, parsed)
+        | Error e -> Assert.Fail e
+
+    [<TestMethod>]
+    member x.``should parse 11`` () = 
+        [Token.Number(11)] |> shouldParseTo <| Expr.Number(11)
 
     [<TestMethod>]
     member x.``should error on garbage`` () = 
-        let expected = Try<Expr, string>.Error("Number expected") 
-        let input = [Symbol('x')]
-        let actual = Syntax.parse(input)
-        Assert.AreEqual(expected, actual)
+        [Symbol('x')] |> shouldFailWith <| "Number expected"
 
     [<TestMethod>]
     member x.``should parse 11 + 22`` () = 
-        let expected = Try<Expr, string>.Success(Expr.Binary(Expr.Number(11), Operator.Add, Expr.Number(22)))
-        let input = [Token.Number(11); Symbol('+'); Token.Number(22)]
-        let actual = Syntax.parse(input)
-        Assert.AreEqual(expected, actual)
+        [Token.Number(11); Symbol('+'); Token.Number(22)] |> shouldParseTo <| Expr.Binary(Expr.Number(11), Operator.Add, Expr.Number(22))
+
+    [<TestMethod>]
+    member x.``should parse 2 * 3`` () = 
+        [Token.Number(2); Symbol('*'); Token.Number(3)] |> shouldParseTo <| Expr.Binary(Expr.Number(2), Operator.Multiply, Expr.Number(3))

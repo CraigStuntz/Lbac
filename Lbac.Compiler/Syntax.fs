@@ -29,6 +29,11 @@
             | '-' -> Some(Operator.Subtract)
             | _   -> None
 
+        let toMulOp = function
+            | '*' -> Some(Operator.Multiply)
+            | '/' -> Some(Operator.Divide)
+            | _   -> None
+
         let rec parseAddOp (leftTerm, symbol, rest) = 
             match toAddOp symbol with
             | Some addOp -> 
@@ -36,6 +41,14 @@
                 | Success rightTerm -> Success(Expr.Binary(leftTerm, addOp, rightTerm))
                 | error            -> error
             | None -> Error("+ or - expected here.")
+
+        and parseMulOp (leftTerm, symbol, rest) = 
+            match toMulOp symbol with
+            | Some mulOp -> 
+                match expr rest with 
+                | Success rightTerm -> Success(Expr.Binary(leftTerm, mulOp, rightTerm))
+                | error            -> error
+            | None -> Error("* or / expected here.")
 
         and expr = function
             | token :: tokens -> 

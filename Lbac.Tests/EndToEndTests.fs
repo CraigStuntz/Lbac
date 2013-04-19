@@ -23,3 +23,7 @@ type EndToEndTests() =
     [<TestMethod>]
     member x.``1 - 2 should equal -1`` () = 
         Compiler.compile("1 - 2") |> shouldEqual <| -1
+
+    [<TestMethod>]
+    member x.``2 * 3 should equal 6`` () = 
+        Compiler.compile("2 * 3") |> shouldEqual <| 6
