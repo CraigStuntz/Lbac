@@ -99,7 +99,6 @@
             | Success il -> 
                 let moduleName = "test.exe"
                 let (t, ab) = compileMethod moduleName il resultType
-                let instance = Activator.CreateInstance(t)
                 Success(t.GetMethod(methodName))
             | Error e -> Error(e)
 

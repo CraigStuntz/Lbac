@@ -51,6 +51,7 @@
     <Compile Include="Part01Tests.fs" />
     <Compile Include="Part02Tests.fs" />
     <Compile Include="ILTests.fs" />
+    <Compile Include="EndToEndTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Lbac.Compiler\Lbac.Compiler.fsproj">
