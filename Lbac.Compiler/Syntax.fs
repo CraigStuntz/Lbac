@@ -15,17 +15,23 @@
 
     type ParseResult = Try<Expr, string>
 
+    /// Converts token list to Success(AST) if valid or Error if not
     let parse(tokens: Token list) =
+
+        /// Returns Some(oper) if head of input is a + or - token
         let toAddOp = function
-            | Token.Symbol('+') -> Some(Add)
-            | Token.Symbol('-') -> Some(Subtract)
-            | _ -> None
+            | Token.Symbol('+') :: _ -> Some(Add)
+            | Token.Symbol('-') :: _ -> Some(Subtract)
+            | _                      -> None
 
+        /// Returns Some(oper) if head of input is a * or / token
         let toMulOp = function
-            | Token.Symbol('*') -> Some(Multiply)
-            | Token.Symbol('/') -> Some(Divide)
-            | _ -> None
+            | Token.Symbol('*') :: _ -> Some(Multiply)
+            | Token.Symbol('/') :: _ -> Some(Divide)
+            | _                      -> None
 
+        /// Returns Success(Expr.Binary(left, oper, right)) when (left, oper, right) are all Success
+        /// Returns Error if any are Error
         let toBinaryExpr = function
             | Success left, Success oper, Success right -> Success(Expr.Binary(left, oper, right))
             | (l, o, r) -> 
@@ -36,29 +42,34 @@
                     |> List.choose (fun elem -> elem) 
                     |> String.concat "; " )
 
+        /// factor ::= (expression) | number (* parentheses not yet implemented *)
         let factor = function
             | Token.Number n :: ts -> Success(Number(n)), ts
             | l                    -> Error("Number expected"), l
             
+        /// term ::= factor  [ mulop factor ]*
         let rec term (tokens: Token list) = 
             let left, rightTokens = factor tokens
-            match rightTokens with
-                | s :: ts -> 
-                    match toMulOp s with
-                    | Some mulOp -> let right, rest = expr(ts) in toBinaryExpr(left, Success(mulOp), right), rest
-                    | None -> left, rightTokens
+            match rightTokens, toMulOp rightTokens with
+                | mulOpSym :: ts, Some mulOp -> 
+                    let right, rest = expression ts
+                    toBinaryExpr(left, Success(mulOp), right), rest
                 | _ -> left, rightTokens
 
-        and expr tokens = 
+        /// expression ::= [addop] term [addop term]* (* unary negation, + not yet implemented *) 
+        and expression tokens = 
             let left, rightTokens = term tokens
-            match rightTokens with
-                | s :: ts -> 
-                    match toAddOp s with
-                    | Some addOp -> let right, rest = expr(ts) in toBinaryExpr(left, Success(addOp), right), rest
-                    | None -> left, rightTokens
+            match rightTokens, toAddOp rightTokens with
+                | addOpSym :: ts, Some addOp -> 
+                    let right, rest = expression ts
+                    toBinaryExpr(left, Success(addOp), right), rest
                 | _ -> left, rightTokens
 
-        let ast, rest = expr tokens 
+        // for the time being we can only parse a single expression
+        // this will change, but, for now, do that:
+        let ast, rest = expression tokens 
+
+        // If anything remains, it's a syntax error
         match rest with 
         | [] -> ast
         | wrong :: _  -> Error("Unexpected token: " + (sprintf "%A" wrong))
