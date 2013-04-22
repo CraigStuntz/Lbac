@@ -16,49 +16,49 @@
     type ParseResult = Try<Expr, string>
 
     let parse(tokens: Token list) =
-        let term = function
-            | Token.Number n -> Success(Number(n))
-            | _              -> Error("Number expected")
-
-        let factor = function
-            | Number n :: ts -> Success(Number(n))
-            | _              -> Error("Number expected")
-            
         let toAddOp = function
-            | '+' -> Some(Operator.Add)
-            | '-' -> Some(Operator.Subtract)
-            | _   -> None
+            | Token.Symbol('+') -> Some(Add)
+            | Token.Symbol('-') -> Some(Subtract)
+            | _ -> None
 
         let toMulOp = function
-            | '*' -> Some(Operator.Multiply)
-            | '/' -> Some(Operator.Divide)
-            | _   -> None
+            | Token.Symbol('*') -> Some(Multiply)
+            | Token.Symbol('/') -> Some(Divide)
+            | _ -> None
 
-        let rec parseAddOp (leftTerm, symbol, rest) = 
-            match toAddOp symbol with
-            | Some addOp -> 
-                match expr rest with 
-                | Success rightTerm -> Success(Expr.Binary(leftTerm, addOp, rightTerm))
-                | error            -> error
-            | None -> Error("+ or - expected here.")
+        let toBinaryExpr = function
+            | Success left, Success oper, Success right -> Success(Expr.Binary(left, oper, right))
+            | (l, o, r) -> 
+                let errorMessage = function
+                    | Error msg -> Some(msg)
+                    | _ -> None
+                Error([errorMessage(l); errorMessage(r)] 
+                    |> List.choose (fun elem -> elem) 
+                    |> String.concat "; " )
 
-        and parseMulOp (leftTerm, symbol, rest) = 
-            match toMulOp symbol with
-            | Some mulOp -> 
-                match expr rest with 
-                | Success rightTerm -> Success(Expr.Binary(leftTerm, mulOp, rightTerm))
-                | error            -> error
-            | None -> Error("* or / expected here.")
+        let factor = function
+            | Token.Number n :: ts -> Success(Number(n)), ts
+            | l                    -> Error("Number expected"), l
+            
+        let rec term (tokens: Token list) = 
+            let left, rightTokens = factor tokens
+            match rightTokens with
+                | s :: ts -> 
+                    match toMulOp s with
+                    | Some mulOp -> let right, rest = expr(ts) in toBinaryExpr(left, Success(mulOp), right), rest
+                    | None -> left, rightTokens
+                | _ -> left, rightTokens
 
-        and expr = function
-            | token :: tokens -> 
-                match term(token) with
-                | Success exp -> 
-                    match tokens with
-                    | [] -> Success(exp)
-                    | Symbol s :: rest -> parseAddOp(exp, s, rest)
-                    | wrong    :: _    -> Error("Unexpected token " + wrong.ToString())
-                | error -> error
-            | _ -> Error("Expression expected")
+        and expr tokens = 
+            let left, rightTokens = term tokens
+            match rightTokens with
+                | s :: ts -> 
+                    match toAddOp s with
+                    | Some addOp -> let right, rest = expr(ts) in toBinaryExpr(left, Success(addOp), right), rest
+                    | None -> left, rightTokens
+                | _ -> left, rightTokens
 
-        expr tokens 
+        let ast, rest = expr tokens 
+        match rest with 
+        | [] -> ast
+        | wrong :: _  -> Error("Unexpected token: " + (sprintf "%A" wrong))

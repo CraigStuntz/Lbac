@@ -26,7 +26,7 @@ type SyntaxTests() =
 
     [<TestMethod>]
     member x.``should error on garbage`` () = 
-        [Symbol('x')] |> shouldFailWith <| "Number expected"
+        [Symbol('x')] |> shouldFailWith <| "Unexpected token: Symbol 'x'"
 
     [<TestMethod>]
     member x.``should parse 11 + 22`` () = 
