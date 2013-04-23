@@ -3,16 +3,14 @@ Let's Build a Compiler... in F#!
 
 F# translation of Jack Crenshaw's Pascal code from his article, "[Let's Build A Compiler](http://compilers.iecc.com/crenshaw/)".
 
-This code is not idiomatic F#. That may change in the future, but for the time being I'm translating Crenshaw's Pascal in a fairly literal way.
+This code is not idiomatic F#. I'm in the process of changing this.
 
 Have fun!
 
 Running the Application
 =======================
 
-Start by running the tests. Note because Visual Studio's support for tests in F# is lousy, **you must do a build (F6) before running the tests!** Running the tests won't implicitly update the assembly used by the test runner!
-
-So do a build and then run all tests in the solution.
+Start by running the tests. 
 
 You can also use the compiler interactively. Run the project Lbac.Compiler and it will compile as you type.
 

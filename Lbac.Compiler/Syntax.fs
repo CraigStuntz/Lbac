@@ -42,13 +42,17 @@
                     |> List.choose (fun elem -> elem) 
                     |> String.concat "; " )
 
-        /// factor ::= (expression) | number (* parentheses not yet implemented *)
-        let factor = function
+        /// factor ::= (expression) | number
+        let rec factor = function
+            | Symbol '(' :: ts     -> 
+                match expression ts with 
+                | exp, Symbol ')' :: rest' -> exp, rest'
+                | _, rest                  -> Error("')' expected."), rest
             | Token.Number n :: ts -> Success(Number(n)), ts
             | l                    -> Error("Number expected"), l
             
         /// term ::= factor  [ mulop factor ]*
-        let rec term (tokens: Token list) = 
+        and term (tokens: Token list) = 
             let left, rightTokens = factor tokens
             match rightTokens, toMulOp rightTokens with
                 | mulOpSym :: ts, Some mulOp -> 
