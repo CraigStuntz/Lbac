@@ -3,29 +3,26 @@
 open System
 open System.IO
 open IL
+open Compiler
+open Errors
 
-let run(reader) = 
-    let parser = new Lbac.ExpressionParsing(reader)
-    try 
-        parser.compile()
-    with
-        | SyntaxException(m) -> eprintfn "Error: %s" m
-                                List.empty<instruction>
-
-let runInteractive() = 
-    let il = run(Console.In)
-    printfn "%A" il
+let runInteractive() =
+    let input = Console.ReadLine() 
+    match Compiler.toIl input with
+    | Success il -> printfn "%A" il
+    | Error s    -> Console.Error.WriteLine s
     Console.ReadLine() |> ignore
 
 let runWithFiles inFile outFile = 
     let input = File.ReadAllText(inFile)
-    let reader = new StringReader(input)
-    let il = run(reader)
-    let moduleName = match outFile with
-                     | Some s -> s
-                     | None   -> IO.Path.ChangeExtension(inFile, ".exe")
-    let (t, ab) = IL.compileMethod moduleName il typeof<int>
-    ab.Save(t.Module.ScopeName) |> ignore
+    match Compiler.toIl input with
+    | Success il -> 
+        let moduleName = match outFile with
+                         | Some s -> s
+                         | None   -> IO.Path.ChangeExtension(inFile, ".exe")
+        let (t, ab) = IL.compileMethod moduleName il typeof<int>
+        ab.Save(t.Module.ScopeName) |> ignore        
+    | Error s    -> Console.Error.WriteLine s
 
 [<EntryPoint>]
 let main(args) = 

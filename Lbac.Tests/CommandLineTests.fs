@@ -8,45 +8,33 @@
     [<TestClass>]
     type CommandLineTests() = class
         let parse_with_fake_output args = 
-            let out = new StringBuilder()
+            let outw = new StringBuilder()
             let error = new StringBuilder()
 
-            let actual = Lbac.CommandLine.parse(args, new StringWriter(out), new StringWriter(error))
+            let actual = Lbac.CommandLine.parse(args, new StringWriter(outw), new StringWriter(error))
 
-            (actual, out.ToString(), error.ToString())
+            (actual, outw.ToString(), error.ToString())
 
         [<TestMethod>]
         member x.parse_should_find_inFile() = 
             let expected = "foo.txt"
-            let args = [| "programname.exe"; "-i"; expected; "-o"; "bar.exe"; "-chapter"; "1" |]
+            let args = [| "programname.exe"; "-i"; expected; "-o"; "bar.exe" |]
 
-            let (actual, out, error) = parse_with_fake_output args
+            let (actual, outw, error) = parse_with_fake_output args
 
             Assert.AreEqual(expected, actual.InFile.Value)
-            Assert.IsTrue(System.String.IsNullOrEmpty(out))
+            Assert.IsTrue(System.String.IsNullOrEmpty(outw))
             Assert.IsTrue(System.String.IsNullOrEmpty(error))
             Assert.IsTrue(actual.Valid)
 
         [<TestMethod>]
         member x.parse_should_find_outFile() = 
             let expected = "bar.exe"
-            let args = [| "programname.exe"; "-i"; "foo.txt"; "-o"; expected; "-chapter"; "1" |]
+            let args = [| "programname.exe"; "-i"; "foo.txt"; "-o"; expected |]
 
             let (actual, out, error) = parse_with_fake_output args
 
             Assert.AreEqual(expected, actual.OutFile.Value)
-            Assert.IsTrue(System.String.IsNullOrEmpty(out))
-            Assert.IsTrue(System.String.IsNullOrEmpty(error))
-            Assert.IsTrue(actual.Valid)
-
-        [<TestMethod>]
-        member x.parse_should_find_chapter() = 
-            let expected = Some 1
-            let args = [| "programname.exe"; "-i"; "foo.txt"; "-o"; "bar.exe"; "-chapter"; "1" |]
-
-            let (actual, out, error) = parse_with_fake_output args
-
-            Assert.AreEqual(expected, actual.Chapter)
             Assert.IsTrue(System.String.IsNullOrEmpty(out))
             Assert.IsTrue(System.String.IsNullOrEmpty(error))
             Assert.IsTrue(actual.Valid)

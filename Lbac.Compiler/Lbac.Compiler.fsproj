@@ -52,9 +52,6 @@
     <Compile Include="IL.fs" />
     <Compile Include="CodeGenerator.fs" />
     <Compile Include="Compiler.fs" />
-    <Compile Include="SyntaxException.fs" />
-    <Compile Include="Part01-Introduction.fs" />
-    <Compile Include="Part02-ExpressionParsing.fs" />
     <None Include="App.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

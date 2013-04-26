@@ -12,3 +12,4 @@
     let private methodBuilder il = IL.toMethod(il, typedefof<System.Int32>)
 
     let compile = lex >> parse >> optimize >> codeGen >> methodBuilder
+    let toIl    = lex >> parse >> optimize >> codeGen
