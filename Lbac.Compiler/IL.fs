@@ -50,12 +50,14 @@
         | Sub            -> ilg.Emit(OpCodes.Sub)
 
     let compileEntryPoint (moduleContainingMethod : System.Reflection.Emit.ModuleBuilder) (methodToCall: System.Reflection.Emit.MethodBuilder) = 
-        let className = "Program"
-        let ta = TypeAttributes.NotPublic ||| TypeAttributes.AutoLayout ||| TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit
-        let tb = moduleContainingMethod.DefineType(className, ta)
-        let ma = MethodAttributes.Public ||| MethodAttributes.Static 
-        let methodName = "Main"
-        let mb = tb.DefineMethod(methodName, ma)
+        let mb = 
+            let tb = 
+                let className = "Program"
+                let ta = TypeAttributes.NotPublic ||| TypeAttributes.AutoLayout ||| TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit
+                moduleContainingMethod.DefineType(className, ta)
+            let ma = MethodAttributes.Public ||| MethodAttributes.Static 
+            let methodName = "Main"
+            tb.DefineMethod(methodName, ma)
         let ilg = mb.GetILGenerator() |> emit
         let ci = methodToCall.ReflectedType.GetConstructor([||])
         ilg (Newobj ci)
@@ -69,21 +71,23 @@
             let writeln = typeof<System.Console>.GetMethod("WriteLine", [| typeof<System.String> |])
             ilg (Call writeln)
         ilg Ret
-        let t = tb.CreateType()
         mb
 
     let private methodName = "MethodName"
 
     let compileMethod(moduleName: string) (instructions: seq<instruction>) (methodResultType) =
-        let assemName = System.IO.Path.ChangeExtension(moduleName, ".exe")
-        let className = "CompiledCode"
-        let an = new AssemblyName(assemName)
-        let ab = AppDomain.CurrentDomain.DefineDynamicAssembly(an, AssemblyBuilderAccess.RunAndSave)
+        let ab = 
+            let assemName = System.IO.Path.ChangeExtension(moduleName, ".exe")
+            let an = new AssemblyName(assemName)
+            AppDomain.CurrentDomain.DefineDynamicAssembly(an, AssemblyBuilderAccess.RunAndSave)
         let modb = ab.DefineDynamicModule(moduleName)
-        let ta = TypeAttributes.Public ||| TypeAttributes.AutoLayout ||| TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit
-        let tb = modb.DefineType(className, ta)
-        let ma = MethodAttributes.Public ||| MethodAttributes.HideBySig
-        let mb = tb.DefineMethod(methodName, ma, methodResultType, System.Type.EmptyTypes)
+        let tb = 
+            let className = "CompiledCode"
+            let ta = TypeAttributes.Public ||| TypeAttributes.AutoLayout ||| TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit
+            modb.DefineType(className, ta)
+        let mb = 
+            let ma = MethodAttributes.Public ||| MethodAttributes.HideBySig
+            tb.DefineMethod(methodName, ma, methodResultType, System.Type.EmptyTypes)
         let ilg = mb.GetILGenerator() |> emit
         ilg (DeclareLocal typeof<int>)
         for instruction in instructions do
@@ -116,5 +120,4 @@
 
     let print (instructions: seq<instruction>) =
         let p = sprintf "%A"
-        Seq.map p instructions
-        
+        Seq.map p instructions        
