@@ -16,6 +16,7 @@
         | Ldloc_1
         | Ldloca_s     of byte
         | Mul
+        | Neg
         | Newobj       of System.Reflection.ConstructorInfo
         | Nop
         | Pop
@@ -38,6 +39,7 @@
         | Ldloc_1        -> ilg.Emit(OpCodes.Ldloc_1)
         | Ldloca_s b     -> ilg.Emit(OpCodes.Ldloca_S, b)
         | Mul            -> ilg.Emit(OpCodes.Mul)
+        | Neg            -> ilg.Emit(OpCodes.Neg)
         | Newobj ci      -> ilg.Emit(OpCodes.Newobj, ci)
         | Nop            -> ilg.Emit(OpCodes.Nop)
         | Pop            -> ilg.Emit(OpCodes.Pop)

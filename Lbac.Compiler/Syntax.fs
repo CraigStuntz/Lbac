@@ -11,6 +11,7 @@
 
     type Expr =
         | Number of int
+        | Minus of Expr
         | Binary of Expr * Operator * Expr
 
     type ParseResult = Try<Expr, string>
@@ -60,9 +61,16 @@
                     toBinaryExpr(left, Success(mulOp), right), rest
                 | _ -> left, rightTokens
 
+        and unary = function
+            | Symbol '-' :: ts -> 
+                match term ts with
+                | Success e, rest -> Success(Minus(e)), rest
+                | error, rest -> error, rest
+            | tokens -> term tokens
+                
         /// expression ::= [addop] term [addop term]* (* unary negation, + not yet implemented *) 
         and expression tokens = 
-            let left, rightTokens = term tokens
+            let left, rightTokens = unary tokens
             match rightTokens, toAddOp rightTokens with
                 | addOpSym :: ts, Some addOp -> 
                     let right, rest = expression ts

@@ -13,6 +13,10 @@
     let rec codegen = function
         | Success expr -> 
             match expr with
+            | Minus e -> 
+                match codegen(Success(e)) with
+                | Success il -> Success(il @ [Neg])
+                | err -> err
             | Number n -> 
                 match n with
                 | 0 -> Success([Ldc_I4_0])

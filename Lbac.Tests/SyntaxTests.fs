@@ -36,8 +36,12 @@ type SyntaxTests() =
     member x.``should parse 2 * 3`` () = 
         [Token.Number(2); Symbol('*'); Token.Number(3)] |> shouldParseTo <| Expr.Binary(Expr.Number(2), Operator.Multiply, Expr.Number(3))
 
-
     [<TestMethod>]
     member x.``(10 - 2 * 3 should fail with mismatched (`` () = 
         [Symbol('('); Token.Number(10); Symbol('-'); Token.Number(2); Symbol('*'); Token.Number(3)] 
             |> shouldFailWith <| "')' expected."
+
+    [<TestMethod>]
+    member x.``should parse -1`` () = 
+        [Symbol('-'); Token.Number(1)] 
+            |> shouldParseTo <| Expr.Minus(Expr.Number(1))
