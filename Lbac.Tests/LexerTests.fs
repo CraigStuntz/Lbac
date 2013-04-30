@@ -12,3 +12,10 @@ type LexerTests() =
         let expected = [Number(11); Symbol('+'); Number(22)]
         let actual = Lex.tokenize testVal
         Assert.AreEqual(expected, actual)
+
+    [<TestMethod>]
+    member x.``should lex identifier`` () = 
+        let testVal = "foo = 1"
+        let expected = [Identifier("foo"); Symbol('='); Number(1)]
+        let actual = Lex.tokenize testVal
+        Assert.AreEqual(expected, actual)
