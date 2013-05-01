@@ -11,6 +11,7 @@
 
     type Expr =
         | Number of int
+        | Variable of string
         | Minus of Expr
         | Binary of Expr * Operator * Expr
 
@@ -50,6 +51,7 @@
                 | exp, Symbol ')' :: rest' -> exp, rest'
                 | _, rest                  -> Error("')' expected."), rest
             | Token.Number n :: ts -> Success(Number(n)), ts
+            | Token.Identifier name :: ts -> Success(Variable(name)), ts
             | l                    -> Error("Number expected"), l
             
         /// term ::= factor  [ mulop factor ]*

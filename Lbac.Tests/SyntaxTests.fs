@@ -45,3 +45,8 @@ type SyntaxTests() =
     member x.``should parse -1`` () = 
         [Symbol('-'); Token.Number(1)] 
             |> shouldParseTo <| Expr.Minus(Expr.Number(1))
+
+    [<TestMethod>]
+    member x.``should parse x + 1`` () = 
+        [Identifier("x"); Symbol('+'); Token.Number(1)] 
+            |> shouldParseTo <| Expr.Binary(Expr.Variable("x"), Operator.Add, Expr.Number(1))
