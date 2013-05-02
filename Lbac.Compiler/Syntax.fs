@@ -12,6 +12,7 @@
     type Expr =
         | Number of int
         | Variable of string
+        | Invoke of string
         | Minus of Expr
         | Binary of Expr * Operator * Expr
 
@@ -44,15 +45,25 @@
                     |> List.choose (fun elem -> elem) 
                     |> String.concat "; " )
 
-        /// factor ::= (expression) | number
+        /// factor ::= (expression) | number | ident
         let rec factor = function
             | Symbol '(' :: ts     -> 
                 match expression ts with 
                 | exp, Symbol ')' :: rest' -> exp, rest'
                 | _, rest                  -> Error("')' expected."), rest
             | Token.Number n :: ts -> Success(Number(n)), ts
-            | Token.Identifier name :: ts -> Success(Variable(name)), ts
-            | l                    -> Error("Number expected"), l
+            | tokens               -> ident tokens
+
+        /// ident = function() | variable
+        and ident = function
+            | Identifier id :: rest ->
+                match rest with 
+                | Symbol '(' :: rest' ->
+                    match rest' with 
+                    | Symbol ')' :: rest'' -> Success(Invoke(id)), rest''
+                    | _                    -> Error ("')' expected"), rest'
+                | _ -> Success(Variable(id)), rest
+            | _ -> Error("Identifier expected"), []
             
         /// term ::= factor  [ mulop factor ]*
         and term (tokens: Token list) = 

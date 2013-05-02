@@ -26,7 +26,7 @@ type SyntaxTests() =
 
     [<TestMethod>]
     member x.``should error on garbage`` () = 
-        [Symbol('x')] |> shouldFailWith <| "Unexpected token: Symbol 'x'"
+        [Symbol('x')] |> shouldFailWith <| "Identifier expected"
 
     [<TestMethod>]
     member x.``should parse 11 + 22`` () = 
@@ -50,3 +50,8 @@ type SyntaxTests() =
     member x.``should parse x + 1`` () = 
         [Identifier("x"); Symbol('+'); Token.Number(1)] 
             |> shouldParseTo <| Expr.Binary(Expr.Variable("x"), Operator.Add, Expr.Number(1))
+
+    [<TestMethod>]
+    member x.``should parse x() + 1`` () = 
+        [Identifier("x"); Symbol('('); Symbol(')'); Symbol('+'); Token.Number(1)] 
+            |> shouldParseTo <| Expr.Binary(Expr.Invoke("x"), Operator.Add, Expr.Number(1))

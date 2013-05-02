@@ -14,6 +14,7 @@
         | Success expr -> 
             match expr with
             | Variable v -> Error("Sorry; no can do")
+            | Invoke m -> Error("Sorry; no can do")
             | Minus e -> 
                 match codegen(Success(e)) with
                 | Success il -> Success(il @ [Neg])
