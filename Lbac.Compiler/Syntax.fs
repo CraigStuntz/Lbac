@@ -8,6 +8,7 @@
         | Subtract
         | Multiply
         | Divide
+        | Assign
 
     type Expr =
         | Number of int
@@ -80,15 +81,27 @@
                 | Success e, rest -> Success(Minus(e)), rest
                 | error, rest -> error, rest
             | tokens -> term tokens
+
+        and assign = function 
+            | Identifier name :: ts ->
+                match ts with
+                | Symbol('=') :: rest -> 
+                    let rhs, remaining = expression(rest)
+                    Some(toBinaryExpr(Success(Variable(name)), Success(Operator.Assign), rhs), remaining)
+                | _ -> None
+            | _ -> None
                 
         /// expression ::= [addop] term [addop term]* (* unary negation, + not yet implemented *) 
         and expression tokens = 
-            let left, rightTokens = unary tokens
-            match rightTokens, toAddOp rightTokens with
-                | addOpSym :: ts, Some addOp -> 
-                    let right, rest = expression ts
-                    toBinaryExpr(left, Success(addOp), right), rest
-                | _ -> left, rightTokens
+            match assign tokens with 
+                | Some assignment -> assignment
+                | None -> 
+                    let left, rightTokens = unary tokens
+                    match rightTokens, toAddOp rightTokens with
+                        | addOpSym :: ts, Some addOp -> 
+                            let right, rest = expression ts
+                            toBinaryExpr(left, Success(addOp), right), rest
+                        | _ -> left, rightTokens
 
         // for the time being we can only parse a single expression
         // this will change, but, for now, do that:
