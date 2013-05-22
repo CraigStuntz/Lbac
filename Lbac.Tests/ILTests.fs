@@ -10,7 +10,7 @@ open IL
 type ILTests() = 
     [<TestMethod>]
     member x.``should produce an executable assembly`` () = 
-        let input = [Ldc_I4(1); Ldc_I4(2); instruction.Add] // 1 + 2
+        let input = { Instructions = [Ldc_I4(1); Ldc_I4(2); instruction.Add]; Locals = [] } // 1 + 2
         let expected = 1 + 2
         let mi = IL.toMethod(Success(input), typedefof<System.Int32>)
         match mi with

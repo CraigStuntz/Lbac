@@ -16,11 +16,11 @@ let runInteractive() =
 let runWithFiles inFile outFile = 
     let input = File.ReadAllText(inFile)
     match Compiler.toIl input with
-    | Success il -> 
+    | Success methodWithInstructions -> 
         let moduleName = match outFile with
                          | Some s -> s
                          | None   -> IO.Path.ChangeExtension(inFile, ".exe")
-        let (t, ab) = IL.compileMethod moduleName il typeof<int>
+        let (t, ab) = IL.compileMethod moduleName methodWithInstructions.Instructions typeof<int>
         ab.Save(t.Module.ScopeName) |> ignore        
     | Error s    -> Console.Error.WriteLine s
 

@@ -26,6 +26,10 @@
         | Stloc_1
         | Sub
 
+    type LocalVar = { Name: string; Type: System.Type }
+    
+    type Method = { Instructions: instruction list; Locals: LocalVar list } 
+     
     let emit (ilg : Emit.ILGenerator) inst = 
         match inst with 
         | Add            -> ilg.Emit(OpCodes.Add)
@@ -100,11 +104,11 @@
         modb.CreateGlobalFunctions()
         (t, ab)
 
-    let toMethod(instructions, resultType) =
-        match instructions with 
-            | Success il -> 
+    let toMethod(methodWithInstructions, resultType) =
+        match methodWithInstructions with 
+            | Success m -> 
                 let moduleName = "test.exe"
-                let (t, ab) = compileMethod moduleName il resultType
+                let (t, ab) = compileMethod moduleName m.Instructions resultType
                 Success(t.GetMethod(methodName))
             | Error e -> Error(e)
 
