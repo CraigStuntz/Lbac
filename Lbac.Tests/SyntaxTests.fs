@@ -22,7 +22,7 @@ type SyntaxTests() =
 
     [<TestMethod>]
     member x.``should parse 11`` () = 
-        [Token.Number(11)] |> shouldParseTo <| Expr.Number(11)
+        [Token.Number(11)] |> shouldParseTo <| [ Expr.Number(11) ]
 
     [<TestMethod>]
     member x.``should error on garbage`` () = 
@@ -30,11 +30,11 @@ type SyntaxTests() =
 
     [<TestMethod>]
     member x.``should parse 11 + 22`` () = 
-        [Token.Number(11); Symbol('+'); Token.Number(22)] |> shouldParseTo <| Expr.Binary(Expr.Number(11), Operator.Add, Expr.Number(22))
+        [Token.Number(11); Symbol('+'); Token.Number(22)] |> shouldParseTo <| [ Expr.Binary(Expr.Number(11), Operator.Add, Expr.Number(22)) ]
 
     [<TestMethod>]
     member x.``should parse 2 * 3`` () = 
-        [Token.Number(2); Symbol('*'); Token.Number(3)] |> shouldParseTo <| Expr.Binary(Expr.Number(2), Operator.Multiply, Expr.Number(3))
+        [Token.Number(2); Symbol('*'); Token.Number(3)] |> shouldParseTo <| [ Expr.Binary(Expr.Number(2), Operator.Multiply, Expr.Number(3)) ]
 
     [<TestMethod>]
     member x.``(10 - 2 * 3 should fail with mismatched (`` () = 
@@ -43,19 +43,18 @@ type SyntaxTests() =
 
     [<TestMethod>]
     member x.``should parse -1`` () = 
-        [Symbol('-'); Token.Number(1)] 
-            |> shouldParseTo <| Expr.Minus(Expr.Number(1))
+        [Symbol('-'); Token.Number(1)] |> shouldParseTo <| [ Expr.Minus(Expr.Number(1)) ]
 
     [<TestMethod>]
     member x.``should parse x + 1`` () = 
         [Identifier("x"); Symbol('+'); Token.Number(1)] 
-            |> shouldParseTo <| Expr.Binary(Expr.Variable("x"), Operator.Add, Expr.Number(1))
+            |> shouldParseTo <| [ Expr.Binary(Expr.Variable("x"), Operator.Add, Expr.Number(1)) ]
 
     [<TestMethod>]
     member x.``should parse x() + 1`` () = 
         [Identifier("x"); Symbol('('); Symbol(')'); Symbol('+'); Token.Number(1)] 
-            |> shouldParseTo <| Expr.Binary(Expr.Invoke("x"), Operator.Add, Expr.Number(1))
+            |> shouldParseTo <| [ Expr.Binary(Expr.Invoke("x"), Operator.Add, Expr.Number(1)) ]
 
     [<TestMethod>]
     member x.``should parse x = 1``() =
-        [Identifier("x"); Symbol('='); Token.Number(1)] |> shouldParseTo <| Expr.Binary(Expr.Variable("x"), Operator.Assign, Expr.Number(1))   
+        [Identifier("x"); Symbol('='); Token.Number(1)] |> shouldParseTo <| [ Expr.Binary(Expr.Variable("x"), Operator.Assign, Expr.Number(1)) ]

@@ -20,7 +20,7 @@
     type ParseResult = Try<Expr, string>
 
     /// Converts token list to Success(AST) if valid or Error if not
-    let parse(tokens: Token list) =
+    let parseLine (tokens: Token list): Try<Expr, string> =
 
         /// Returns Some(oper) if head of input is a + or - token
         let toAddOp = function
@@ -111,3 +111,8 @@
         match rest with 
         | [] -> ast
         | wrong :: _  -> Error("Unexpected token: " + (sprintf "%A" wrong))
+
+    let parse (tokens: Token list): Try<Expr list, string> =
+        match parseLine tokens with
+        | Success expr -> Success [expr]
+        | Error err    -> Error err
