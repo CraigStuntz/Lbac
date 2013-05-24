@@ -19,3 +19,10 @@ type LexerTests() =
         let expected = [Identifier("foo"); Symbol('='); Number(1)]
         let actual = Lex.tokenize testVal
         Assert.AreEqual(expected, actual)
+
+    [<TestMethod>]
+    member x.``should lex multiple lines`` () = 
+        let testVal = "1\n2"
+        let expected = [Number(1); NewLine; Number(2)]
+        let actual = Lex.tokenize testVal
+        Assert.AreEqual(expected, actual)

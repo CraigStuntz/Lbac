@@ -5,8 +5,10 @@
         | Identifier of string
         | Number of int
         | Symbol of char
+        | NewLine
 
     let tokenize (input: string) =
+        let charIsCrlf c = Set.contains c (set ['\r'; '\n'])
         let rec readIdentifier acc = function
             | c :: rest when Char.IsLetterOrDigit(c) ->
                 readIdentifier (acc + c.ToString()) rest
@@ -16,7 +18,8 @@
                 readNumber (acc + d.ToString()) rest
             | rest -> Number(Int32.Parse(acc)), rest
         let rec tokenize' acc = function 
-            | d :: rest when Char.IsDigit(d) ->
+            | n :: rest when charIsCrlf n     -> tokenize' (NewLine :: acc) rest
+            | d :: rest when Char.IsDigit(d)  ->
                 let num, rest' = readNumber (d.ToString()) rest
                 tokenize' (num :: acc) rest'
             | c :: rest when Char.IsLetter(c) ->
