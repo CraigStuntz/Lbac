@@ -20,7 +20,7 @@
     type ParseResult = Try<Expr, string>
 
     /// Converts token list to Success(AST) if valid or Error if not
-    let parseLine (tokens: Token list): Try<Expr, string> =
+    let rec parseLine (acc: ParseResult list) (tokens: Token list): ParseResult list =
 
         /// Returns Some(oper) if head of input is a + or - token
         let toAddOp = function
@@ -91,7 +91,7 @@
                 | _ -> None
             | _ -> None
                 
-        /// expression ::= [addop] term [addop term]* (* unary negation, + not yet implemented *) 
+        /// expression ::= [addop] term [addop term]* 
         and expression tokens = 
             match assign tokens with 
                 | Some assignment -> assignment
@@ -103,16 +103,13 @@
                             toBinaryExpr(left, Success(addOp), right), rest
                         | _ -> left, rightTokens
 
-        // for the time being we can only parse a single expression
-        // this will change, but, for now, do that:
         let ast, rest = expression tokens 
 
         // If anything remains, it's a syntax error
         match rest with 
-        | [] -> ast
-        | wrong :: _  -> Error("Unexpected token: " + (sprintf "%A" wrong))
+        | [] -> acc @ [ast]
+        | NewLine _ :: nextLines -> parseLine (acc @ [ast]) nextLines 
+        | wrong :: _  -> [ Error("Unexpected token: " + (sprintf "%A" wrong)) ]
 
-    let parse (tokens: Token list): Try<Expr list, string> =
-        match parseLine tokens with
-        | Success expr -> Success [expr]
-        | Error err    -> Error err
+    let parse (tokens: Token list): ParseResult list =
+        parseLine [] tokens 

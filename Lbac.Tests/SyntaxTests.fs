@@ -8,17 +8,19 @@ open Syntax
 
 [<TestClass>]
 type SyntaxTests() = 
-    let shouldFailWith input expected = 
+    let lineShouldFailWith input expected = 
         let actual = Syntax.parse(input)
-        match actual with 
-        | Success _ -> Assert.Fail("Expected " + expected)
-        | Error e -> Assert.AreEqual(expected, e)
+        let isMatch = function 
+            | Error e -> expected = e
+            | _ -> false
+        if not (List.exists isMatch actual) then Assert.Fail("Expected " + expected) 
 
     let shouldParseTo input expected = 
         let actual = Syntax.parse(input)
-        match actual with 
-        | Success parsed -> Assert.AreEqual(expected, parsed)
-        | Error e -> Assert.Fail e
+        let itemMatches exp = function
+            | Success parsed -> Assert.AreEqual(exp, parsed)
+            | Error e -> Assert.Fail e
+        List.iter (fun (e, a) -> itemMatches e a) (List.zip expected actual)
 
     [<TestMethod>]
     member x.``should parse 11`` () = 
@@ -26,7 +28,7 @@ type SyntaxTests() =
 
     [<TestMethod>]
     member x.``should error on garbage`` () = 
-        [Symbol('x')] |> shouldFailWith <| "Identifier expected"
+        [Symbol('x')] |> lineShouldFailWith <| "Identifier expected"
 
     [<TestMethod>]
     member x.``should parse 11 + 22`` () = 
@@ -39,8 +41,8 @@ type SyntaxTests() =
     [<TestMethod>]
     member x.``(10 - 2 * 3 should fail with mismatched (`` () = 
         [Symbol('('); Token.Number(10); Symbol('-'); Token.Number(2); Symbol('*'); Token.Number(3)] 
-            |> shouldFailWith <| "')' expected."
-
+            |> lineShouldFailWith <| "')' expected."
+            
     [<TestMethod>]
     member x.``should parse -1`` () = 
         [Symbol('-'); Token.Number(1)] |> shouldParseTo <| [ Expr.Minus(Expr.Number(1)) ]
@@ -58,3 +60,7 @@ type SyntaxTests() =
     [<TestMethod>]
     member x.``should parse x = 1``() =
         [Identifier("x"); Symbol('='); Token.Number(1)] |> shouldParseTo <| [ Expr.Binary(Expr.Variable("x"), Operator.Assign, Expr.Number(1)) ]
+
+    [<TestMethod>]
+    member x.``should parse multiple lines``() =
+        [Token.Number(1); NewLine; Token.Number(2)] |> shouldParseTo <| [ Expr.Number(1); Expr.Number(2) ]
