@@ -8,17 +8,20 @@ open Syntax
 
 [<TestClass>]
 type SyntaxTests() = 
-    let lineShouldFailWith input expected = 
-        let actual = Syntax.parse(input)
+    let shouldFailWith input expected = 
+        let actual = Syntax.parse(input).Lines
         let isMatch = function 
             | Error e -> expected = e
             | _ -> false
         if not (List.exists isMatch actual) then Assert.Fail("Expected " + expected) 
 
-    let shouldParseTo input expected = 
-        let actual = Syntax.parse(input)
+    let shouldParseTo input (expected : Expr list) = 
+        let actual = Syntax.parse(input).Lines
+        // This test isn't strictly necessary, but it does improve the error reporting
+        if actual.Length <> expected.Length then 
+            Assert.Fail(sprintf "Expected %A, got %A." expected actual)
         let itemMatches exp = function
-            | Success parsed -> Assert.AreEqual(exp, parsed)
+            | Success parsed -> Assert.AreEqual(exp, parsed, sprintf "Expected %A, got %A." expected actual)
             | Error e -> Assert.Fail e
         List.iter (fun (e, a) -> itemMatches e a) (List.zip expected actual)
 
@@ -28,7 +31,7 @@ type SyntaxTests() =
 
     [<TestMethod>]
     member x.``should error on garbage`` () = 
-        [Symbol('x')] |> lineShouldFailWith <| "Identifier expected"
+        [Symbol('x')] |> shouldFailWith <| "Identifier expected"
 
     [<TestMethod>]
     member x.``should parse 11 + 22`` () = 
@@ -41,7 +44,7 @@ type SyntaxTests() =
     [<TestMethod>]
     member x.``(10 - 2 * 3 should fail with mismatched (`` () = 
         [Symbol('('); Token.Number(10); Symbol('-'); Token.Number(2); Symbol('*'); Token.Number(3)] 
-            |> lineShouldFailWith <| "')' expected."
+            |> shouldFailWith <| "')' expected."
             
     [<TestMethod>]
     member x.``should parse -1`` () = 
@@ -49,8 +52,8 @@ type SyntaxTests() =
 
     [<TestMethod>]
     member x.``should parse x + 1`` () = 
-        [Identifier("x"); Symbol('+'); Token.Number(1)] 
-            |> shouldParseTo <| [ Expr.Binary(Expr.Variable("x"), Operator.Add, Expr.Number(1)) ]
+        [Identifier("x"); Symbol('='); Token.Number(1); NewLine; Identifier("x"); Symbol('+'); Token.Number(1)] 
+            |> shouldParseTo <| [ Expr.Binary(Expr.Variable("x"), Assign, Number(1)); Expr.Binary(Expr.Variable("x"), Operator.Add, Expr.Number(1)) ]
 
     [<TestMethod>]
     member x.``should parse x() + 1`` () = 
@@ -64,3 +67,7 @@ type SyntaxTests() =
     [<TestMethod>]
     member x.``should parse multiple lines``() =
         [Token.Number(1); NewLine; Token.Number(2)] |> shouldParseTo <| [ Expr.Number(1); Expr.Number(2) ]
+
+    [<TestMethod>]
+    member x.``should fail with undeclared local``() =
+        [Token.Identifier("x")] |> shouldFailWith <| "Variable \"x\" not declared"

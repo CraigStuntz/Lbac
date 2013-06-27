@@ -35,11 +35,11 @@
                 | (Error l, _) -> lhsMethod
                 | (_, Error r) -> rhsMethod
 
-    let rec codegen (expList : ParseResult list) =
+    let rec codegen (expList : ParseResult) =
         let tryCodeGenLine acc line = 
             match acc, line with
             | Success accMethod, Success expr -> codegenExpr accMethod expr
             | _, Error err -> Error err
             | Error err, _ -> Error err
         let emptyMethod = Success( { Instructions = List.empty<instruction>; Locals = List.empty<LocalVar> } )
-        List.fold tryCodeGenLine emptyMethod expList
+        List.fold tryCodeGenLine emptyMethod expList.Lines
