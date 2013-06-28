@@ -11,11 +11,11 @@
         | Assign
 
     type Expr =
-        | Number of int
+        | Number   of int
         | Variable of string
-        | Invoke of string
-        | Minus of Expr
-        | Binary of Expr * Operator * Expr
+        | Invoke   of string
+        | Minus    of Expr
+        | Binary   of Expr * Operator * Expr
 
     type Line = Try<Expr, string>
 
@@ -50,10 +50,10 @@
 
         /// factor ::= (expression) | number | ident
         let rec factor acc = function
-            | Symbol '(' :: ts     -> 
-                match expression acc ts with 
+            | Symbol '(' :: rest   -> 
+                match expression acc rest with 
                 | exp, Symbol ')' :: rest', acc' -> exp, rest', acc'
-                | _, rest, acc'                  -> Error("')' expected."), rest, acc'
+                | _, rest', acc'                 -> Error("')' expected."), rest', acc'
             | Token.Number n :: ts -> Success(Number(n)), ts, acc
             | tokens               -> ident acc tokens
 
@@ -63,11 +63,13 @@
                 match rest with 
                 | Symbol '(' :: rest' -> // function invocation
                     match rest' with 
+                    // No support for argument passing yet. 
+                    // Only valid function invocation is empty parens: foo()
                     | Symbol ')' :: rest'' -> Success(Invoke(id)), rest'', acc
                     | _                    -> Error ("')' expected"), rest', acc
                 | _                   -> // dereference       
                     match acc.Locals.Contains(id) with
-                    | true -> Success(Variable(id)), rest, acc
+                    | true  -> Success(Variable(id)), rest, acc
                     | false -> Error(sprintf "Variable %A not declared" id), rest, acc
             | _ -> Error("Identifier expected"), [], acc
             
@@ -81,19 +83,18 @@
                 | _ -> left, rightTokens, acc'
 
         and unary acc = function
-            | Symbol '-' :: ts -> 
-                match term acc ts with
-                | Success e, rest, acc' -> Success(Minus(e)), rest, acc'
-                | error, rest, _ -> error, rest, acc
+            | Symbol '-' :: rest -> 
+                match term acc rest with
+                | Success e, rest', acc' -> Success(Minus(e)), rest', acc'
+                | error,     rest', _    -> error, rest', acc
             | tokens -> term acc tokens
 
         and assign acc = function 
-            | Identifier name :: ts ->
-                match ts with
-                | Symbol('=') :: rest -> 
-                    let acc' = { acc with Locals = acc.Locals.Add(name) }
-                    let rhs, remaining, acc'' = expression acc' rest
-                    Some(toBinaryExpr(Success(Variable(name)), Success(Operator.Assign), rhs), remaining, acc')
+            | Identifier name :: rest ->
+                match rest with
+                | Symbol('=') :: rest' -> 
+                    let rhs, rest'', acc' = expression { acc with Locals = acc.Locals.Add(name) } rest'
+                    Some(toBinaryExpr(Success(Variable(name)), Success(Operator.Assign), rhs), rest'', acc')
                 | _ -> None
             | _ -> None
                 
@@ -105,7 +106,7 @@
                     let leftExpr, rightTokens, acc' = unary acc tokens
                     match rightTokens, toAddOp rightTokens with
                         | addOpSym :: ts, Some addOp -> 
-                            let right, rest, acc'' = expression acc ts
+                            let right, rest, acc'' = expression acc' ts
                             toBinaryExpr(leftExpr, Success(addOp), right), rest, acc''
                         | _ -> leftExpr, rightTokens, acc'
 
@@ -115,7 +116,7 @@
         | []                     -> { acc' with Lines = acc.Lines @ [ast] } // done!
         | NewLine _ :: nextLines -> parseLine { acc' with Lines = acc.Lines @ [ast] } nextLines 
         // If anything remains on line, it's a syntax error
-        | wrong     :: _         -> { Lines = [ Error("Unexpected token: " + (sprintf "%A" wrong)) ]; Locals = acc.Locals }
+        | wrong     :: _         -> { acc' with Lines = [ Error("Unexpected token: " + (sprintf "%A" wrong)) ] }
 
     let parse (tokens: Token list): ParseResult =
         parseLine { Lines = []; Locals = Set.empty } tokens 
