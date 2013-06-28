@@ -93,7 +93,6 @@
             let ma = MethodAttributes.Public ||| MethodAttributes.HideBySig
             tb.DefineMethod(methodName, ma, methodResultType, System.Type.EmptyTypes)
         let ilg = mb.GetILGenerator() |> emit
-        ilg (DeclareLocal typeof<int>)
         for instruction in instructions do
             ilg instruction
         ilg Ret
