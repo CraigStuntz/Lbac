@@ -17,7 +17,7 @@ type CodeGeneratorTests() =
     let shouldProduceIL (input, locals) expected = 
         let actual = CodeGenerator.codegen({ Lines = [Success(input)]; Locals = locals })
         match actual with 
-            | Success il -> Assert.AreEqual(expected, il)
+            | Success il -> Assert.AreEqual(expected.Instructions, il.Instructions)
             | Error e -> Assert.Fail(e)
 
     let noLocalVariables = Set.empty
@@ -37,6 +37,6 @@ type CodeGeneratorTests() =
     [<TestMethod>]
     member x.``should codegen x + 1`` () =
         let input = Expr.Binary(Expr.Variable("x"), Add, Expr.Number(1))
-        let expected = { Instructions = [Ldloc_0; Ldc_I4(1); instruction.Add]; Locals = [] }
+        let expected = { Instructions = [DeclareLocal(typedefof<int>); Ldloc_0; Ldc_I4(1); instruction.Add]; Locals = [] }
         (input, Set.singleton("x")) |> shouldProduceIL <| expected
 
