@@ -11,9 +11,22 @@
         | Divide -> instruction.Div
         | Assign -> failwith "Sorry; no can do"
 
+
+    let private tryLdLoc ((locals : string list), (name : string)) = 
+        match List.tryFindIndex (fun l -> System.String.Equals(l, name, System.StringComparison.Ordinal)) locals with
+            | None -> Error ("Undeclared variable " + name)
+            | Some i -> 
+                match i with 
+                | 0 -> Success(Ldloc_0)
+                | 1 -> Success(Ldloc_1)
+                | _ -> Success(Ldloca_s (System.Convert.ToByte(i)))
+
     let rec codegenExpr (acc : Method) locals (expr : Expr) = 
         match expr with
-        | Variable v -> Error "Sorry; no can do"
+        | Variable v -> 
+            match tryLdLoc (locals, v) with 
+            | Success inst -> Success({ acc with Instructions = acc.Instructions @ [inst] })
+            | Error   err  -> Error err
         | Invoke m -> Error "Sorry; no can do"
         | Minus e -> 
             match codegenExpr acc locals e with
@@ -39,11 +52,10 @@
         let locals = 
             parsed.Locals 
             |> List.ofSeq 
-            |> List.mapi (fun i l -> (i, l))
         let tryCodeGenLine acc line = 
             match acc, line with
             | Success accMethod, Success expr -> codegenExpr accMethod locals expr
             | _, Error err -> Error err
             | Error err, _ -> Error err
-        let emptyMethod = Success( { Instructions = List.empty<instruction>; Locals = List.empty<LocalVar> } )
+        let emptyMethod = Success( { Instructions = List.empty<instruction>; Locals = List.empty<string> } )
         List.fold tryCodeGenLine emptyMethod parsed.Lines

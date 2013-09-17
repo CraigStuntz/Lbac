@@ -26,9 +26,7 @@
         | Stloc_1
         | Sub
 
-    type LocalVar = { Name: string; Type: System.Type }
-    
-    type Method = { Instructions: instruction list; Locals: LocalVar list } 
+    type Method = { Instructions: instruction list; Locals: string list } 
      
     let emit (ilg : Emit.ILGenerator) inst = 
         match inst with 
