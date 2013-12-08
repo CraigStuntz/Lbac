@@ -47,3 +47,11 @@ type EndToEndTests() =
     [<TestMethod>]
     member x.``6/2 should equal 3`` () = 
         Compiler.compile("6/2") |> shouldEqual <| 3
+
+    [<TestMethod>]
+    member x.``Assign and use local var`` () = 
+        Compiler.compile("x = 1\nx + 2") |> shouldEqual <| 3
+
+    [<TestMethod>]
+    member x.``Assign and use 2 local vars`` () = 
+        Compiler.compile("x = 1\ny = 2\nx + y") |> shouldEqual <| 3
