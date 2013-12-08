@@ -42,6 +42,6 @@ type CodeGeneratorTests() =
     
     [<TestMethod>]
     member x.``should codegen x = 1`` () =
-        let input = Expr.Binary(Expr.Variable("x"), Assign, Expr.Number(1))
+        let input = Expr.Assign(Expr.Variable("x"), Expr.Number(1))
         let expected = [DeclareLocal(typedefof<int>); Ldc_I4(1); Stloc_0]
         (input, Set.singleton("x")) |> shouldProduceIL <| expected

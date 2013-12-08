@@ -8,13 +8,13 @@
         | Subtract
         | Multiply
         | Divide
-        | Assign
 
     type Expr =
         | Number   of int
         | Variable of string
         | Invoke   of string
         | Minus    of Expr
+        | Assign   of Expr * Expr
         | Binary   of Expr * Operator * Expr
 
     type Line = Try<Expr, string>
@@ -36,6 +36,18 @@
             | Token.Symbol('/') :: _ -> Some(Divide)
             | _                      -> None
 
+        /// Returns Success(Expr.Assign(name, right)) when (name is a variable reference and right is Success
+        /// Returns Error if any are Error
+        let toAssignExpr = function
+            | Success name, Success right -> Success(Expr.Assign(name, right))
+            | (n, r) -> 
+                let errorMessage = function
+                    | Error msg -> Some(msg)
+                    | _ -> None
+                Error([errorMessage(n); errorMessage(r)] 
+                    |> List.choose (fun elem -> elem) 
+                    |> String.concat "; " )
+                    
         /// Returns Success(Expr.Binary(left, oper, right)) when (left, oper, right) are all Success
         /// Returns Error if any are Error
         let toBinaryExpr = function
@@ -94,7 +106,7 @@
                 match rest with
                 | Symbol('=') :: rest' -> 
                     let rhs, rest'', acc' = expression { acc with Locals = acc.Locals.Add(name) } rest'
-                    Some(toBinaryExpr(Success(Variable(name)), Success(Operator.Assign), rhs), rest'', acc')
+                    Some(toAssignExpr(Success(Variable(name)), rhs), rest'', acc')
                 | _ -> None
             | _ -> None
                 

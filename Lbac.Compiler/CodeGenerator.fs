@@ -21,8 +21,6 @@
         | Subtract -> instruction.Sub
         | Multiply -> instruction.Mul
         | Divide -> instruction.Div
-        // This is a code smell. Consider handling Assign as non-operator?
-        | Assign -> failwith "Sorry; no can do" // Assign is handled separately. Execution should never get here.
 
     let private tryLdLoc ((locals : string list), (name : string)) = 
         match local_var_index locals name with
@@ -48,31 +46,28 @@
             match n with
             | 0 -> Success({ acc with Instructions = acc.Instructions @ [Ldc_I4_0] })
             | _ -> Success({ acc with Instructions = acc.Instructions @ [Ldc_I4 n] })
+        | Assign (n, rhs) -> 
+            let rhsMethod = codegenExpr { acc with Instructions = [] } rhs
+            match (n, rhsMethod) with 
+            | (Variable name, Success r) -> 
+                match codegen_assign r.Locals name with 
+                | Success assign_inst -> 
+                    let insts = List.concat [ r.Instructions; [ assign_inst ] ]
+                    Success({ Instructions = acc.Instructions @ insts; Locals = r.Locals })
+                | Error a -> Error(a)
+            | (_, Success r) -> failwith "A variable is required on the left hand side of an assignment." // Should never happen; parser should not emit this
+            | (_, Error r) -> rhsMethod
         | Binary (lhs, oper, rhs) -> 
-            match oper with 
-            | Assign -> 
-                // This is a code smell. Consider handling Assign as non-operator?
-                let rhsMethod = codegenExpr { acc with Instructions = [] } rhs
-                match (lhs, rhsMethod) with 
-                | (Variable name, Success r) -> 
-                    match codegen_assign r.Locals name with 
-                    | Success assign_inst -> 
-                        let insts = List.concat [ r.Instructions; [ assign_inst ] ]
-                        Success({ Instructions = acc.Instructions @ insts; Locals = r.Locals })
-                    | Error a -> Error(a)
-                | (_, Success r) -> failwith "A variable is required on the left hand side of an assignment." // Should never happen; parser should not emit this
+            let lhsMethod = codegenExpr { acc with Instructions = [] } lhs
+            let rhsMethod = codegenExpr { acc with Instructions = [] } rhs
+            let operInst = codegen_oper oper
+            match (lhsMethod, rhsMethod) with
+                | (Success l, Success r) -> 
+                    let insts       = List.concat [ l.Instructions; r.Instructions; [operInst] ]
+                    let mergeLocals = List.concat [ l.Locals; List.filter (fun i2 -> not (List.exists (fun i1 -> i1 = i2) l.Locals)) r.Locals]
+                    Success({ Instructions = acc.Instructions @ insts; Locals = mergeLocals })
+                | (Error l, _) -> lhsMethod
                 | (_, Error r) -> rhsMethod
-            | _ ->
-                let lhsMethod = codegenExpr { acc with Instructions = [] } lhs
-                let rhsMethod = codegenExpr { acc with Instructions = [] } rhs
-                let operInst = codegen_oper oper
-                match (lhsMethod, rhsMethod) with
-                    | (Success l, Success r) -> 
-                        let insts       = List.concat [ l.Instructions; r.Instructions; [operInst] ]
-                        let mergeLocals = List.concat [ l.Locals; List.filter (fun i2 -> not (List.exists (fun i1 -> i1 = i2) l.Locals)) r.Locals]
-                        Success({ Instructions = acc.Instructions @ insts; Locals = mergeLocals })
-                    | (Error l, _) -> lhsMethod
-                    | (_, Error r) -> rhsMethod
 
     let rec codegen (parsed : ParseResult) =
         let locals = 

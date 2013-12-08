@@ -53,7 +53,7 @@ type SyntaxTests() =
     [<TestMethod>]
     member x.``should parse x + 1`` () = 
         [Identifier("x"); Symbol('='); Token.Number(1); NewLine; Identifier("x"); Symbol('+'); Token.Number(1)] 
-            |> shouldParseTo <| [ Expr.Binary(Expr.Variable("x"), Assign, Number(1)); Expr.Binary(Expr.Variable("x"), Operator.Add, Expr.Number(1)) ]
+            |> shouldParseTo <| [ Expr.Assign(Expr.Variable("x"), Number(1)); Expr.Binary(Expr.Variable("x"), Operator.Add, Expr.Number(1)) ]
 
     [<TestMethod>]
     member x.``should parse x() + 1`` () = 
@@ -62,7 +62,7 @@ type SyntaxTests() =
 
     [<TestMethod>]
     member x.``should parse x = 1``() =
-        [Identifier("x"); Symbol('='); Token.Number(1)] |> shouldParseTo <| [ Expr.Binary(Expr.Variable("x"), Operator.Assign, Expr.Number(1)) ]
+        [Identifier("x"); Symbol('='); Token.Number(1)] |> shouldParseTo <| [ Expr.Assign(Expr.Variable("x"), Expr.Number(1)) ]
 
     [<TestMethod>]
     member x.``should parse multiple lines``() =
