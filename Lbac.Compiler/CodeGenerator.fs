@@ -4,6 +4,18 @@
     open IL
     open Syntax
 
+    let private local_var_index locals name = 
+        List.tryFindIndex (fun l -> System.String.Equals(l, name, System.StringComparison.Ordinal)) locals
+
+    let private codegen_assign locals name =
+        match local_var_index locals name with
+            | None -> Error ("Undeclared variable " + name)
+            | Some i -> 
+                match i with 
+                | 0 -> Success(Stloc_0)
+                | 1 -> Success(Stloc_1)
+                | _ -> Success(Stloc (System.Convert.ToByte(i)))
+
     let private codegen_oper = function
         | Add -> instruction.Add
         | Subtract -> instruction.Sub
@@ -13,7 +25,7 @@
         | Assign -> failwith "Sorry; no can do" // Assign is handled separately. Execution should never get here.
 
     let private tryLdLoc ((locals : string list), (name : string)) = 
-        match List.tryFindIndex (fun l -> System.String.Equals(l, name, System.StringComparison.Ordinal)) locals with
+        match local_var_index locals name with
             | None -> Error ("Undeclared variable " + name)
             | Some i -> 
                 match i with 
@@ -43,8 +55,11 @@
                 let rhsMethod = codegenExpr { acc with Instructions = [] } rhs
                 match (lhs, rhsMethod) with 
                 | (Variable name, Success r) -> 
-                    let insts = List.concat [ r.Instructions; [Stloc 0uy] ]
-                    Success({ Instructions = acc.Instructions @ insts; Locals = r.Locals })
+                    match codegen_assign r.Locals name with 
+                    | Success assign_inst -> 
+                        let insts = List.concat [ r.Instructions; [ assign_inst ] ]
+                        Success({ Instructions = acc.Instructions @ insts; Locals = r.Locals })
+                    | Error a -> Error(a)
                 | (_, Success r) -> failwith "A variable is required on the left hand side of an assignment." // Should never happen; parser should not emit this
                 | (_, Error r) -> rhsMethod
             | _ ->
