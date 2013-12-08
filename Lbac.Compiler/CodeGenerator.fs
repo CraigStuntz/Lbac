@@ -9,7 +9,8 @@
         | Subtract -> instruction.Sub
         | Multiply -> instruction.Mul
         | Divide -> instruction.Div
-        | Assign -> failwith "Sorry; no can do"
+        // This is a code smell. Consider handling Assign as non-operator?
+        | Assign -> failwith "Sorry; no can do" // Assign is handled separately. Execution should never get here.
 
     let private tryLdLoc ((locals : string list), (name : string)) = 
         match List.tryFindIndex (fun l -> System.String.Equals(l, name, System.StringComparison.Ordinal)) locals with
@@ -36,16 +37,27 @@
             | 0 -> Success({ acc with Instructions = acc.Instructions @ [Ldc_I4_0] })
             | _ -> Success({ acc with Instructions = acc.Instructions @ [Ldc_I4 n] })
         | Binary (lhs, oper, rhs) -> 
-            let lhsMethod = codegenExpr { acc with Instructions = [] } lhs
-            let rhsMethod = codegenExpr { acc with Instructions = [] } rhs
-            let operInst = codegen_oper oper
-            match (lhsMethod, rhsMethod) with
-                | (Success l, Success r) -> 
-                    let insts       = List.concat [ l.Instructions; r.Instructions; [operInst] ]
-                    let mergeLocals = List.concat [ l.Locals; List.filter (fun i2 -> not (List.exists (fun i1 -> i1 = i2) l.Locals)) r.Locals]
-                    Success({ Instructions = acc.Instructions @ insts; Locals = mergeLocals })
-                | (Error l, _) -> lhsMethod
+            match oper with 
+            | Assign -> 
+                // This is a code smell. Consider handling Assign as non-operator?
+                let rhsMethod = codegenExpr { acc with Instructions = [] } rhs
+                match (lhs, rhsMethod) with 
+                | (Variable name, Success r) -> 
+                    let insts = List.concat [ r.Instructions; [Stloc 0uy] ]
+                    Success({ Instructions = acc.Instructions @ insts; Locals = r.Locals })
+                | (_, Success r) -> failwith "A variable is required on the left hand side of an assignment." // Should never happen; parser should not emit this
                 | (_, Error r) -> rhsMethod
+            | _ ->
+                let lhsMethod = codegenExpr { acc with Instructions = [] } lhs
+                let rhsMethod = codegenExpr { acc with Instructions = [] } rhs
+                let operInst = codegen_oper oper
+                match (lhsMethod, rhsMethod) with
+                    | (Success l, Success r) -> 
+                        let insts       = List.concat [ l.Instructions; r.Instructions; [operInst] ]
+                        let mergeLocals = List.concat [ l.Locals; List.filter (fun i2 -> not (List.exists (fun i1 -> i1 = i2) l.Locals)) r.Locals]
+                        Success({ Instructions = acc.Instructions @ insts; Locals = mergeLocals })
+                    | (Error l, _) -> lhsMethod
+                    | (_, Error r) -> rhsMethod
 
     let rec codegen (parsed : ParseResult) =
         let locals = 

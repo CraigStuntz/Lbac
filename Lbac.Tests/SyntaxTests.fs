@@ -13,7 +13,7 @@ type SyntaxTests() =
         let isMatch = function 
             | Error e -> expected = e
             | _ -> false
-        if not (List.exists isMatch actual) then Assert.Fail("Expected " + expected) 
+        if not (List.exists isMatch actual) then Assert.Fail(sprintf "Expected %A, got %A." expected actual) 
 
     let shouldParseTo input (expected : Expr list) = 
         let actual = Syntax.parse(input).Lines
@@ -71,3 +71,7 @@ type SyntaxTests() =
     [<TestMethod>]
     member x.``should fail with undeclared local``() =
         [Token.Identifier("x")] |> shouldFailWith <| "Variable \"x\" not declared"
+
+    [<TestMethod>]
+    member x.``1 = 2 should fail``() =
+        [Token.Number(1); Symbol('='); Token.Number(2)] |> shouldFailWith <| "Unexpected token: Symbol '='"

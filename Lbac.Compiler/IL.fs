@@ -24,6 +24,7 @@
         | Ret
         | Stloc_0
         | Stloc_1
+        | Stloc         of byte
         | Sub
 
     type Method = { Instructions: instruction list; Locals: string list } 
@@ -49,6 +50,7 @@
         | Ret            -> ilg.Emit(OpCodes.Ret)
         | Stloc_0        -> ilg.Emit(OpCodes.Stloc_0)
         | Stloc_1        -> ilg.Emit(OpCodes.Stloc_1)
+        | Stloc n        -> ilg.Emit(OpCodes.Stloc, n)
         | Sub            -> ilg.Emit(OpCodes.Sub)
 
     let compileEntryPoint (moduleContainingMethod : System.Reflection.Emit.ModuleBuilder) (methodToCall: System.Reflection.Emit.MethodBuilder) = 
