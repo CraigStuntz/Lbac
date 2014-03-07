@@ -9,10 +9,6 @@
 
     let tokenize (input: string) =
         let charIsCrlf c = Set.contains c (set ['\r'; '\n'])
-        let rec readCrlf acc = function
-            | c :: rest when charIsCrlf c  ->
-                readCrlf acc rest
-            | rest -> Identifier(acc), rest
         let rec readIdentifier acc = function
             | c :: rest when Char.IsLetterOrDigit(c) ->
                 readIdentifier (acc + c.ToString()) rest
