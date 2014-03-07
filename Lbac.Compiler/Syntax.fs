@@ -125,10 +125,11 @@
         let ast, rest, acc' = expression acc tokens 
 
         match rest with 
-        | []                     -> { acc' with Lines = acc.Lines @ [ast] } // done!
-        | NewLine _ :: nextLines -> parseLine { acc' with Lines = acc.Lines @ [ast] } nextLines 
+        | [] 
+        | NewLine :: []    -> { acc' with Lines = acc.Lines @ [ast] } // done!
+        | NewLine :: rest' -> parseLine { acc' with Lines = acc.Lines @ [ast] } rest' 
         // If anything remains on line, it's a syntax error
-        | wrong     :: _         -> { acc' with Lines = [ Error("Unexpected token: " + (sprintf "%A" wrong)) ] }
+        | wrong   :: _     -> { acc' with Lines = [ Error("Unexpected token: " + (sprintf "%A" wrong)) ] }
 
     let parse (tokens: Token list): ParseResult =
         parseLine { Lines = []; Locals = Set.empty } tokens 

@@ -9,6 +9,10 @@
 
     let tokenize (input: string) =
         let charIsCrlf c = Set.contains c (set ['\r'; '\n'])
+        let rec readCrlf acc = function
+            | c :: rest when charIsCrlf c  ->
+                readCrlf acc rest
+            | rest -> Identifier(acc), rest
         let rec readIdentifier acc = function
             | c :: rest when Char.IsLetterOrDigit(c) ->
                 readIdentifier (acc + c.ToString()) rest
@@ -17,15 +21,22 @@
             | d :: rest when Char.IsDigit(d) ->
                 readNumber (acc + d.ToString()) rest
             | rest -> Number(Int32.Parse(acc)), rest
-        let rec tokenize' acc = function 
-            | n :: rest when charIsCrlf n     -> tokenize' (NewLine :: acc) rest
+        let rec tokenizeLine acc = function 
+            | n :: rest when charIsCrlf n     -> 
+                match acc with 
+                    | [] -> acc, rest
+                    | _  -> (NewLine :: acc), rest
             | d :: rest when Char.IsDigit(d)  ->
                 let num, rest' = readNumber (d.ToString()) rest
-                tokenize' (num :: acc) rest'
+                tokenizeLine (num :: acc) rest'
             | c :: rest when Char.IsLetter(c) ->
                 let ident, rest' = readIdentifier (c.ToString()) rest
-                tokenize' (ident ::acc) rest'
-            | [] -> List.rev acc
-            | ws :: rest when Char.IsWhiteSpace(ws) -> tokenize' acc rest
-            | c :: rest -> tokenize' (Symbol(c) :: acc) rest
-        tokenize' [] (List.ofSeq input)
+                tokenizeLine (ident ::acc) rest'
+            | [] -> acc, []
+            | ws :: rest when Char.IsWhiteSpace(ws) -> tokenizeLine acc rest
+            | c :: rest -> tokenizeLine (Symbol(c) :: acc) rest
+        let rec beginningOfLine acc input =
+            match tokenizeLine [] input with 
+            | tokens, [] -> tokens @ acc
+            | acc', rest -> (beginningOfLine [] rest) @ acc' @acc
+        List.rev (beginningOfLine [] (List.ofSeq input))

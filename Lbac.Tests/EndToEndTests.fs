@@ -55,3 +55,11 @@ type EndToEndTests() =
     [<TestMethod>]
     member x.``Assign and use 2 local vars`` () = 
         Compiler.compile("x = 1\ny = 2\nx + y") |> shouldEqual <| 3
+
+    [<TestMethod>]
+    member x.``Ignore extra CRLFs, whitespace`` () = 
+        Compiler.compile("""
+        x = 1  
+        y = 2 
+        x + y   
+        """) |> shouldEqual <| 3
