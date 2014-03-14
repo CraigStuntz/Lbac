@@ -2,28 +2,25 @@
 
 open System
 open Microsoft.VisualStudio.TestTools.UnitTesting
-open Errors
+open Railway
 open Lex
 open Syntax
 
 [<TestClass>]
 type SyntaxTests() = 
     let shouldFailWith input expected = 
-        let actual = Syntax.parse(input).Lines
-        let isMatch = function 
-            | Error e -> expected = e
-            | _ -> false
-        if not (List.exists isMatch actual) then Assert.Fail(sprintf "Expected %A, got %A." expected actual) 
+        match Syntax.parse(input) with
+            | Failure actual -> Assert.AreEqual(expected, actual)
+            | Success actual -> Assert.Fail(sprintf "Expected %A, got %A." expected actual) 
 
     let shouldParseTo input (expected : Expr list) = 
-        let actual = Syntax.parse(input).Lines
-        // This test isn't strictly necessary, but it does improve the error reporting
-        if actual.Length <> expected.Length then 
-            Assert.Fail(sprintf "Expected %A, got %A." expected actual)
-        let itemMatches exp = function
-            | Success parsed -> Assert.AreEqual(exp, parsed, sprintf "Expected %A, got %A." expected actual)
-            | Error e -> Assert.Fail e
-        List.iter (fun (e, a) -> itemMatches e a) (List.zip expected actual)
+        match Syntax.parse(input) with
+            | Failure actual -> Assert.Fail(actual)
+            | Success actual -> // This test isn't strictly necessary, but it does improve the error reporting
+                                if actual.Lines.Length <> expected.Length then 
+                                    Assert.Fail(sprintf "Expected %A, got %A." expected actual.Lines)
+                                let itemMatches exp act = Assert.AreEqual(exp, act, sprintf "Expected %A, got %A." expected act)
+                                List.iter (fun (e, a) -> itemMatches e a) (List.zip expected actual.Lines)
 
     [<TestMethod>]
     member x.``should parse 11`` () = 

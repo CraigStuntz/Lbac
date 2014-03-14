@@ -4,13 +4,13 @@ open System
 open System.IO
 open IL
 open Compiler
-open Errors
+open Railway
 
 let runInteractive() =
     let input = Console.ReadLine() 
     match Compiler.toIl input with
     | Success il -> printfn "%A" il
-    | Error s    -> Console.Error.WriteLine s
+    | Failure s    -> Console.Error.WriteLine s
     Console.ReadLine() |> ignore
 
 let runWithFiles inFile outFile = 
@@ -22,7 +22,7 @@ let runWithFiles inFile outFile =
                          | None   -> IO.Path.ChangeExtension(inFile, ".exe")
         let (t, ab) = IL.compileMethod moduleName methodWithInstructions.Instructions typeof<int>
         ab.Save(t.Module.ScopeName) |> ignore        
-    | Error s    -> Console.Error.WriteLine s
+    | Failure s    -> Console.Error.WriteLine s
 
 [<EntryPoint>]
 let main(args) = 

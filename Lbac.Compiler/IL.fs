@@ -2,7 +2,7 @@
     open System
     open System.Reflection
     open System.Reflection.Emit
-    open Errors
+    open Railway
 
     type instruction = 
         | Add 
@@ -103,13 +103,10 @@
         modb.CreateGlobalFunctions()
         (t, ab)
 
-    let toMethod(methodWithInstructions, resultType) =
-        match methodWithInstructions with 
-            | Success m -> 
-                let moduleName = "test.exe"
-                let (t, ab) = compileMethod moduleName m.Instructions resultType
-                Success(t.GetMethod(methodName))
-            | Error e -> Error(e)
+    let toMethod resultType methodWithInstructions =
+        let moduleName = "test.exe"
+        let (t, ab) = compileMethod moduleName methodWithInstructions.Instructions resultType
+        t.GetMethod(methodName)
 
     let execute<'TMethodResultType> (instructions, saveAs) =
         let moduleName = match saveAs with

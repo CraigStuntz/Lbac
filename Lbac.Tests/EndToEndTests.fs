@@ -3,7 +3,7 @@
 open System
 open Microsoft.VisualStudio.TestTools.UnitTesting
 open Compiler
-open Errors
+open Railway
 
 [<TestClass>]
 type EndToEndTests() = 
@@ -14,7 +14,7 @@ type EndToEndTests() =
     let shouldEqual output expected = 
         match output with
         | Success mi -> Assert.AreEqual(expected, execute(mi))
-        | Error e -> Assert.Fail(e)
+        | Failure e -> Assert.Fail(e)
          
     [<TestMethod>]
     member x.``1 + 2 should equal 3`` () = 

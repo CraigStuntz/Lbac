@@ -1,6 +1,6 @@
 ﻿module CodeGenerator
 
-    open Errors
+    open Railway
     open IL
     open Syntax
 
@@ -9,7 +9,7 @@
 
     let private codegen_assign locals name =
         match local_var_index locals name with
-            | None -> Error ("Undeclared variable " + name)
+            | None -> Failure ("Undeclared variable " + name)
             | Some i -> 
                 match i with 
                 | 0 -> Success(Stloc_0)
@@ -24,7 +24,7 @@
 
     let private tryLdLoc ((locals : string list), (name : string)) = 
         match local_var_index locals name with
-            | None -> Error ("Undeclared variable " + name)
+            | None -> Failure ("Undeclared variable " + name)
             | Some i -> 
                 match i with 
                 | 0 -> Success(Ldloc_0)
@@ -36,8 +36,8 @@
         | Variable v -> 
             match tryLdLoc (acc.Locals, v) with 
             | Success inst -> Success({ acc with Instructions = acc.Instructions @ [inst] })
-            | Error   err  -> Error err
-        | Invoke m -> Error "Sorry; no can do"
+            | Failure   err  -> Failure err
+        | Invoke m -> Failure "Sorry; no can do"
         | Minus e -> 
             match codegenExpr acc e with
             | Success m -> Success({ m with Instructions = m.Instructions @ [Neg] })
@@ -54,9 +54,9 @@
                 | Success assign_inst -> 
                     let insts = List.concat [ r.Instructions; [ assign_inst ] ]
                     Success({ Instructions = acc.Instructions @ insts; Locals = r.Locals })
-                | Error a -> Error(a)
+                | Failure a -> Failure(a)
             | (_, Success r) -> failwith "A variable is required on the left hand side of an assignment." // Should never happen; parser should not emit this
-            | (_, Error r) -> rhsMethod
+            | (_, Failure r) -> rhsMethod
         | Binary (lhs, oper, rhs) -> 
             let lhsMethod = codegenExpr { acc with Instructions = [] } lhs
             let rhsMethod = codegenExpr { acc with Instructions = [] } rhs
@@ -66,8 +66,9 @@
                     let insts       = List.concat [ l.Instructions; r.Instructions; [operInst] ]
                     let mergeLocals = List.concat [ l.Locals; List.filter (fun i2 -> not (List.exists (fun i1 -> i1 = i2) l.Locals)) r.Locals]
                     Success({ Instructions = acc.Instructions @ insts; Locals = mergeLocals })
-                | (Error l, _) -> lhsMethod
-                | (_, Error r) -> rhsMethod
+                | (Failure l, _) -> lhsMethod
+                | (_, Failure r) -> rhsMethod
+        | Error _ -> failwith "Sorry, you can't pass an Error here!"
 
     let rec codegen (parsed : ParseResult) =
         let locals = 
@@ -75,9 +76,8 @@
             |> List.ofSeq 
         let tryCodeGenLine acc line = 
             match acc, line with
-            | Success accMethod, Success expr -> codegenExpr accMethod expr
-            | _, Error err -> Error err
-            | Error err, _ -> Error err
+            | Success accMethod, expr -> codegenExpr accMethod expr
+            | Failure err, _ -> Failure err
         let localDeclarations = [for name in locals -> DeclareLocal(typedefof<int>)]
         let emptyMethod = Success( { Instructions = localDeclarations; Locals = locals } )
         List.fold tryCodeGenLine emptyMethod parsed.Lines

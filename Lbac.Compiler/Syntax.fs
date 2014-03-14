@@ -1,6 +1,6 @@
 ﻿module Syntax
     
-    open Errors
+    open Railway
     open Lex
 
     type Operator =
@@ -16,10 +16,9 @@
         | Minus    of Expr
         | Assign   of Expr * Expr
         | Binary   of Expr * Operator * Expr
+        | Error of string
 
-    type Line = Try<Expr, string>
-
-    type ParseResult = { Lines: Line list; Locals: Set<string> } 
+    type ParseResult = { Lines: Expr list; Locals: Set<string> } 
 
     /// Converts token list to Success(AST) if valid or Error if not
     let rec parseLine (acc: ParseResult) (tokens: Token list): ParseResult =
@@ -36,37 +35,13 @@
             | Token.Symbol('/') :: _ -> Some(Divide)
             | _                      -> None
 
-        /// Returns Success(Expr.Assign(name, right)) when (name is a variable reference and right is Success
-        /// Returns Error if any are Error
-        let toAssignExpr = function
-            | Success name, Success right -> Success(Expr.Assign(name, right))
-            | (n, r) -> 
-                let errorMessage = function
-                    | Error msg -> Some(msg)
-                    | _ -> None
-                Error([errorMessage(n); errorMessage(r)] 
-                    |> List.choose (fun elem -> elem) 
-                    |> String.concat "; " )
-                    
-        /// Returns Success(Expr.Binary(left, oper, right)) when (left, oper, right) are all Success
-        /// Returns Error if any are Error
-        let toBinaryExpr = function
-            | Success left, Success oper, Success right -> Success(Expr.Binary(left, oper, right))
-            | (l, o, r) -> 
-                let errorMessage = function
-                    | Error msg -> Some(msg)
-                    | _ -> None
-                Error([errorMessage(l); errorMessage(r)] 
-                    |> List.choose (fun elem -> elem) 
-                    |> String.concat "; " )
-
         /// factor ::= (expression) | number | ident
         let rec factor acc = function
             | Symbol '(' :: rest   -> 
                 match expression acc rest with 
                 | exp, Symbol ')' :: rest', acc' -> exp, rest', acc'
                 | _, rest', acc'                 -> Error("')' expected."), rest', acc'
-            | Token.Number n :: ts -> Success(Number(n)), ts, acc
+            | Token.Number n :: ts -> Number(n), ts, acc
             | tokens               -> ident acc tokens
 
         /// ident = function() | variable
@@ -77,11 +52,11 @@
                     match rest' with 
                     // No support for argument passing yet. 
                     // Only valid function invocation is empty parens: foo()
-                    | Symbol ')' :: rest'' -> Success(Invoke(id)), rest'', acc
+                    | Symbol ')' :: rest'' -> Invoke(id), rest'', acc
                     | _                    -> Error ("')' expected"), rest', acc
                 | _                   -> // dereference       
                     match acc.Locals.Contains(id) with
-                    | true  -> Success(Variable(id)), rest, acc
+                    | true  -> Variable(id), rest, acc
                     | false -> Error(sprintf "Variable %A not declared" id), rest, acc
             | _ -> Error("Identifier expected"), [], acc
             
@@ -91,14 +66,13 @@
             match rightTokens, toMulOp rightTokens with
                 | mulOpSym :: ts, Some mulOp -> 
                     let right, rest, acc'' = expression acc' ts
-                    toBinaryExpr(left, Success(mulOp), right), rest, acc''
+                    Binary(left, mulOp, right), rest, acc''
                 | _ -> left, rightTokens, acc'
 
         and unary acc = function
             | Symbol '-' :: rest -> 
                 match term acc rest with
-                | Success e, rest', acc' -> Success(Minus(e)), rest', acc'
-                | error,     rest', _    -> error, rest', acc
+                | e, rest', acc' -> Minus(e), rest', acc'
             | tokens -> term acc tokens
 
         and assign acc = function 
@@ -106,7 +80,7 @@
                 match rest with
                 | Symbol('=') :: rest' -> 
                     let rhs, rest'', acc' = expression { acc with Locals = acc.Locals.Add(name) } rest'
-                    Some(toAssignExpr(Success(Variable(name)), rhs), rest'', acc')
+                    Some(Assign(Variable(name), rhs), rest'', acc')
                 | _ -> None
             | _ -> None
                 
@@ -119,7 +93,7 @@
                     match rightTokens, toAddOp rightTokens with
                         | addOpSym :: ts, Some addOp -> 
                             let right, rest, acc'' = expression acc' ts
-                            toBinaryExpr(leftExpr, Success(addOp), right), rest, acc''
+                            Binary(leftExpr, addOp, right), rest, acc''
                         | _ -> leftExpr, rightTokens, acc'
 
         let ast, rest, acc' = expression acc tokens 
@@ -131,5 +105,25 @@
         // If anything remains on line, it's a syntax error
         | wrong   :: _     -> { acc' with Lines = [ Error("Unexpected token: " + (sprintf "%A" wrong)) ] }
 
-    let parse (tokens: Token list): ParseResult =
+    let tryParse (tokens: Token list): ParseResult =
         parseLine { Lines = []; Locals = Set.empty } tokens 
+
+    let errorMessagesFor expr = 
+        let rec errorMessagesForImpl acc = function 
+            | Minus  expr                -> acc @ errorMessagesForImpl acc expr 
+            | Assign (name, value)       -> acc @ errorMessagesForImpl acc value @ errorMessagesForImpl acc name
+            | Binary (left, oper, right) -> acc @ errorMessagesForImpl acc right @ errorMessagesForImpl acc left
+            | Error  message          -> [message]
+            | Number   _ 
+            | Variable _ 
+            | Invoke   _                 -> acc
+        errorMessagesForImpl [] expr
+
+    let errorsForLines (lines: Expr list) =
+        List.collect errorMessagesFor lines
+        
+    let parse (tokens: Token list): Result<ParseResult, string> = 
+        let result = tryParse tokens
+        match errorsForLines result.Lines with
+        | []     -> Success(result)
+        | errors -> Failure(System.String.Join(System.Environment.NewLine, errors))

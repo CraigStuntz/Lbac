@@ -3,22 +3,22 @@
 open System
 open Microsoft.VisualStudio.TestTools.UnitTesting
 open CodeGenerator
-open Errors
+open Railway
 open IL
 open Syntax
 
 [<TestClass>]
 type CodeGeneratorTests() =
     let shouldFailWith (input, locals) error = 
-        match CodeGenerator.codegen({ Lines = [Success(input)]; Locals = locals }) with
+        match CodeGenerator.codegen({ Lines = [input]; Locals = locals }) with
             | Success _ -> Assert.Fail("Expected error.")
-            | Error   e -> Assert.AreEqual(error, e)
+            | Failure e -> Assert.AreEqual(error, e)
 
     let shouldProduceIL (input, locals) expected = 
-        let actual = CodeGenerator.codegen({ Lines = [Success(input)]; Locals = locals })
+        let actual = CodeGenerator.codegen({ Lines = [input]; Locals = locals })
         match actual with 
             | Success il -> Assert.AreEqual(expected, il.Instructions)
-            | Error e -> Assert.Fail(e)
+            | Failure e -> Assert.Fail(e)
 
     let noLocalVariables = Set.empty
 
