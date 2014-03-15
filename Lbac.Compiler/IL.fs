@@ -2,7 +2,6 @@
     open System
     open System.Reflection
     open System.Reflection.Emit
-    open Railway
 
     type instruction = 
         | Add 
@@ -29,7 +28,7 @@
 
     type Method = { Instructions: instruction list; Locals: string list } 
      
-    let emit (ilg : Emit.ILGenerator) inst = 
+    let private emit (ilg : Emit.ILGenerator) inst = 
         match inst with 
         | Add            -> ilg.Emit(OpCodes.Add)
         | Call mi        -> ilg.Emit(OpCodes.Call, mi)
@@ -53,7 +52,7 @@
         | Stloc n        -> ilg.Emit(OpCodes.Stloc, n)
         | Sub            -> ilg.Emit(OpCodes.Sub)
 
-    let compileEntryPoint (moduleContainingMethod : System.Reflection.Emit.ModuleBuilder) (methodToCall: System.Reflection.Emit.MethodBuilder) = 
+    let private compileEntryPoint (moduleContainingMethod : ModuleBuilder) (methodToCall: MethodBuilder) = 
         let mb = 
             let tb = 
                 let className = "Program"
