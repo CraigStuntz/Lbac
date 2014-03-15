@@ -4,11 +4,11 @@
     open IL
     open Syntax
 
-    let private local_var_index locals name = 
+    let private localVarIndex locals name = 
         List.tryFindIndex (fun l -> System.String.Equals(l, name, System.StringComparison.Ordinal)) locals
 
-    let private codegen_assign locals name =
-        match local_var_index locals name with
+    let private codegenAssign locals name =
+        match localVarIndex locals name with
             | None -> Failure ("Undeclared variable " + name)
             | Some i -> 
                 match i with 
@@ -16,14 +16,14 @@
                 | 1 -> Success(Stloc_1)
                 | _ -> Success(Stloc (System.Convert.ToByte(i)))
 
-    let private codegen_oper = function
+    let private codegenOper = function
         | Add -> instruction.Add
         | Subtract -> instruction.Sub
         | Multiply -> instruction.Mul
         | Divide -> instruction.Div
 
     let private tryLdLoc ((locals : string list), (name : string)) = 
-        match local_var_index locals name with
+        match localVarIndex locals name with
             | None -> Failure ("Undeclared variable " + name)
             | Some i -> 
                 match i with 
@@ -50,7 +50,7 @@
             let rhsMethod = codegenExpr { acc with Instructions = [] } rhs
             match (n, rhsMethod) with 
             | (Variable name, Success r) -> 
-                match codegen_assign r.Locals name with 
+                match codegenAssign r.Locals name with 
                 | Success assign_inst -> 
                     let insts = List.concat [ r.Instructions; [ assign_inst ] ]
                     Success({ Instructions = acc.Instructions @ insts; Locals = r.Locals })
@@ -60,7 +60,7 @@
         | Binary (lhs, oper, rhs) -> 
             let lhsMethod = codegenExpr { acc with Instructions = [] } lhs
             let rhsMethod = codegenExpr { acc with Instructions = [] } rhs
-            let operInst = codegen_oper oper
+            let operInst = codegenOper oper
             match (lhsMethod, rhsMethod) with
                 | (Success l, Success r) -> 
                     let insts       = List.concat [ l.Instructions; r.Instructions; [operInst] ]
@@ -73,7 +73,7 @@
     let rec codegen (parsed : ParseResult) =
         let locals = 
             parsed.Locals 
-            |> List.ofSeq 
+            |> List.ofSeq
         let tryCodeGenLine acc line = 
             match acc, line with
             | Success accMethod, expr -> codegenExpr accMethod expr
