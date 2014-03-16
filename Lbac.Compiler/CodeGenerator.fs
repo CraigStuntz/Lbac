@@ -9,27 +9,19 @@
 
     let private codegenAssign locals name =
         match localVarIndex locals name with
-            | None -> Failure ("Undeclared variable " + name)
-            | Some i -> 
-                match i with 
-                | 0 -> Success(Stloc_0)
-                | 1 -> Success(Stloc_1)
-                | _ -> Success(Stloc (System.Convert.ToByte(i)))
+            | None   -> Failure ("Undeclared variable " + name)
+            | Some i -> Success(Stloc_S (System.Convert.ToByte(i)))
 
     let private codegenOper = function
-        | Add -> instruction.Add
+        | Add      -> instruction.Add
         | Subtract -> instruction.Sub
         | Multiply -> instruction.Mul
-        | Divide -> instruction.Div
+        | Divide   -> instruction.Div
 
     let private tryLdLoc ((locals : string list), (name : string)) = 
         match localVarIndex locals name with
-            | None -> Failure ("Undeclared variable " + name)
-            | Some i -> 
-                match i with 
-                | 0 -> Success(Ldloc_0)
-                | 1 -> Success(Ldloc_1)
-                | _ -> Success(Ldloca_s (System.Convert.ToByte(i)))
+            | None   -> Failure ("Undeclared variable " + name)
+            | Some i -> Success(Ldloc_S (System.Convert.ToByte(i)))
 
     let rec codegenExpr (acc : Method) (expr : Expr) = 
         match expr with
@@ -42,10 +34,7 @@
             match codegenExpr acc e with
             | Success m -> Success({ m with Instructions = m.Instructions @ [Neg] })
             | err -> err
-        | Number n -> 
-            match n with
-            | 0 -> Success({ acc with Instructions = acc.Instructions @ [Ldc_I4_0] })
-            | _ -> Success({ acc with Instructions = acc.Instructions @ [Ldc_I4 n] })
+        | Number n -> Success({ acc with Instructions = acc.Instructions @ [Ldc_I4 n] })
         | Assign (n, rhs) -> 
             let rhsMethod = codegenExpr { acc with Instructions = [] } rhs
             match (n, rhsMethod) with 

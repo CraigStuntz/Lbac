@@ -44,11 +44,11 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="MSTest.runsettings" />
-    <Compile Include="CommandLineTests.fs" />
+    <Compile Include="ILTests.fs" />
     <Compile Include="LexerTests.fs" />
     <Compile Include="SyntaxTests.fs" />
     <Compile Include="CodeGeneratorTests.fs" />
-    <Compile Include="ILTests.fs" />
+    <Compile Include="CommandLineTests.fs" />
     <Compile Include="EndToEndTests.fs" />
   </ItemGroup>
   <ItemGroup>

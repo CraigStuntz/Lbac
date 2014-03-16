@@ -11,7 +11,8 @@
     let private parse = Syntax.parse
     let private optimize = switch identity
     let private codeGen = CodeGenerator.codegen
+    let private optimizeIL = switch OptimizeIL.optimize
     let private methodBuilder = switch(IL.toMethod typedefof<System.Int32>)
 
-    let compile = lex >> parse >=> optimize >=> codeGen >=> methodBuilder
-    let toIl    = lex >> parse >=> optimize >=> codeGen
+    let compile = lex >> parse >=> optimize >=> codeGen >=> optimizeIL >=> methodBuilder
+    let toIl    = lex >> parse >=> optimize >=> codeGen 

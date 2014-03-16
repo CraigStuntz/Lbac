@@ -11,9 +11,19 @@
         | Div
         | Ldc_I4       of int
         | Ldc_I4_0
+        | Ldc_I4_1
+        | Ldc_I4_2
+        | Ldc_I4_3
+        | Ldc_I4_4
+        | Ldc_I4_5
+        | Ldc_I4_6
+        | Ldc_I4_7
+        | Ldc_I4_8
         | Ldloc_0
         | Ldloc_1
-        | Ldloca_s     of byte
+        | Ldloc_2
+        | Ldloc_3
+        | Ldloc_S      of byte
         | Mul
         | Neg
         | Newobj       of System.Reflection.ConstructorInfo
@@ -23,7 +33,9 @@
         | Ret
         | Stloc_0
         | Stloc_1
-        | Stloc         of byte
+        | Stloc_2
+        | Stloc_3
+        | Stloc_S      of byte
         | Sub
 
     type Method = { Instructions: instruction list; Locals: string list } 
@@ -35,11 +47,21 @@
         | Callvirt mi    -> ilg.Emit(OpCodes.Callvirt, mi)
         | DeclareLocal t -> ignore(ilg.DeclareLocal(t))
         | Div            -> ilg.Emit(OpCodes.Div)
-        | Ldc_I4   n     -> ilg.Emit(OpCodes.Ldc_I4, n)
+        | Ldc_I4 n       -> ilg.Emit(OpCodes.Ldc_I4, n)
         | Ldc_I4_0       -> ilg.Emit(OpCodes.Ldc_I4_0)
+        | Ldc_I4_1       -> ilg.Emit(OpCodes.Ldc_I4_1)
+        | Ldc_I4_2       -> ilg.Emit(OpCodes.Ldc_I4_2)
+        | Ldc_I4_3       -> ilg.Emit(OpCodes.Ldc_I4_3)
+        | Ldc_I4_4       -> ilg.Emit(OpCodes.Ldc_I4_4)
+        | Ldc_I4_5       -> ilg.Emit(OpCodes.Ldc_I4_5)
+        | Ldc_I4_6       -> ilg.Emit(OpCodes.Ldc_I4_6)
+        | Ldc_I4_7       -> ilg.Emit(OpCodes.Ldc_I4_7)
+        | Ldc_I4_8       -> ilg.Emit(OpCodes.Ldc_I4_8)
         | Ldloc_0        -> ilg.Emit(OpCodes.Ldloc_0)
         | Ldloc_1        -> ilg.Emit(OpCodes.Ldloc_1)
-        | Ldloca_s b     -> ilg.Emit(OpCodes.Ldloca_S, b)
+        | Ldloc_2        -> ilg.Emit(OpCodes.Ldloc_2)
+        | Ldloc_3        -> ilg.Emit(OpCodes.Ldloc_3)
+        | Ldloc_S i      -> ilg.Emit(OpCodes.Ldloc_S, i)
         | Mul            -> ilg.Emit(OpCodes.Mul)
         | Neg            -> ilg.Emit(OpCodes.Neg)
         | Newobj ci      -> ilg.Emit(OpCodes.Newobj, ci)
@@ -49,7 +71,9 @@
         | Ret            -> ilg.Emit(OpCodes.Ret)
         | Stloc_0        -> ilg.Emit(OpCodes.Stloc_0)
         | Stloc_1        -> ilg.Emit(OpCodes.Stloc_1)
-        | Stloc n        -> ilg.Emit(OpCodes.Stloc, n)
+        | Stloc_2        -> ilg.Emit(OpCodes.Stloc_2)
+        | Stloc_3        -> ilg.Emit(OpCodes.Stloc_3)
+        | Stloc_S i      -> ilg.Emit(OpCodes.Stloc_S, i)
         | Sub            -> ilg.Emit(OpCodes.Sub)
 
     let private compileEntryPoint (moduleContainingMethod : ModuleBuilder) (methodToCall: MethodBuilder) = 
@@ -68,7 +92,7 @@
         if methodToCall.ReturnType <> null then
             ilg (DeclareLocal methodToCall.ReturnType)
             ilg Stloc_0
-            ilg (Ldloca_s 0uy)
+            ilg (Ldloc_S 0uy)
             let mi = methodToCall.ReturnType.GetMethod("ToString", [||])
             ilg (Call mi)
             let writeln = typeof<System.Console>.GetMethod("WriteLine", [| typeof<System.String> |])
