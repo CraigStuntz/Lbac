@@ -15,4 +15,4 @@
     let private methodBuilder = switch(IL.toMethod typedefof<System.Int32>)
 
     let compile = lex >> parse >=> optimize >=> codeGen >=> optimizeIL >=> methodBuilder
-    let toIl    = lex >> parse >=> optimize >=> codeGen 
+    let toIl    = lex >> parse >=> optimize >=> codeGen >=> optimizeIL
