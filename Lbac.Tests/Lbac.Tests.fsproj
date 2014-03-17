@@ -48,6 +48,7 @@
     <Compile Include="LexerTests.fs" />
     <Compile Include="SyntaxTests.fs" />
     <Compile Include="CodeGeneratorTests.fs" />
+    <Compile Include="OptimizeILTests.fs" />
     <Compile Include="CommandLineTests.fs" />
     <Compile Include="EndToEndTests.fs" />
   </ItemGroup>
