@@ -19,6 +19,7 @@
         | Ldc_I4_6
         | Ldc_I4_7
         | Ldc_I4_8
+        | Ldloc        of int
         | Ldloc_0
         | Ldloc_1
         | Ldloc_2
@@ -31,6 +32,7 @@
         | Pop
         | Refanyval
         | Ret
+        | Stloc        of int
         | Stloc_0
         | Stloc_1
         | Stloc_2
@@ -57,23 +59,25 @@
         | Ldc_I4_6       -> ilg.Emit(OpCodes.Ldc_I4_6)
         | Ldc_I4_7       -> ilg.Emit(OpCodes.Ldc_I4_7)
         | Ldc_I4_8       -> ilg.Emit(OpCodes.Ldc_I4_8)
+        | Ldloc    i     -> ilg.Emit(OpCodes.Ldloc, i)
         | Ldloc_0        -> ilg.Emit(OpCodes.Ldloc_0)
         | Ldloc_1        -> ilg.Emit(OpCodes.Ldloc_1)
         | Ldloc_2        -> ilg.Emit(OpCodes.Ldloc_2)
         | Ldloc_3        -> ilg.Emit(OpCodes.Ldloc_3)
-        | Ldloc_S i      -> ilg.Emit(OpCodes.Ldloc_S, i)
+        | Ldloc_S  i     -> ilg.Emit(OpCodes.Ldloc_S, i)
         | Mul            -> ilg.Emit(OpCodes.Mul)
         | Neg            -> ilg.Emit(OpCodes.Neg)
-        | Newobj ci      -> ilg.Emit(OpCodes.Newobj, ci)
+        | Newobj   ci    -> ilg.Emit(OpCodes.Newobj, ci)
         | Nop            -> ilg.Emit(OpCodes.Nop)
         | Pop            -> ilg.Emit(OpCodes.Pop)
         | Refanyval      -> ilg.Emit(OpCodes.Refanyval)
         | Ret            -> ilg.Emit(OpCodes.Ret)
+        | Stloc    i     -> ilg.Emit(OpCodes.Stloc, i)
         | Stloc_0        -> ilg.Emit(OpCodes.Stloc_0)
         | Stloc_1        -> ilg.Emit(OpCodes.Stloc_1)
         | Stloc_2        -> ilg.Emit(OpCodes.Stloc_2)
         | Stloc_3        -> ilg.Emit(OpCodes.Stloc_3)
-        | Stloc_S i      -> ilg.Emit(OpCodes.Stloc_S, i)
+        | Stloc_S  i     -> ilg.Emit(OpCodes.Stloc_S, i)
         | Sub            -> ilg.Emit(OpCodes.Sub)
 
     let private compileEntryPoint (moduleContainingMethod : ModuleBuilder) (methodToCall: MethodBuilder) = 

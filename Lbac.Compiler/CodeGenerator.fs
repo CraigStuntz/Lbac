@@ -10,7 +10,7 @@
     let private codegenAssign locals name =
         match localVarIndex locals name with
             | None   -> Failure ("Undeclared variable " + name)
-            | Some i -> Success(Stloc_S (System.Convert.ToByte(i)))
+            | Some i -> Success(Stloc i)
 
     let private codegenOper = function
         | Add      -> instruction.Add
@@ -21,7 +21,7 @@
     let private tryLdLoc ((locals : string list), (name : string)) = 
         match localVarIndex locals name with
             | None   -> Failure ("Undeclared variable " + name)
-            | Some i -> Success(Ldloc_S (System.Convert.ToByte(i)))
+            | Some i -> Success(Ldloc i)
 
     let rec codegenExpr (acc : Method) (expr : Expr) = 
         match expr with

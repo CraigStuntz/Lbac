@@ -37,11 +37,11 @@ type CodeGeneratorTests() =
     [<TestMethod>]
     member x.``should codegen x + 1`` () =
         let input = Expr.Binary(Expr.Variable("x"), Add, Expr.Number(1))
-        let expected = [DeclareLocal(typedefof<int>); Ldloc_S 0uy; Ldc_I4 1; instruction.Add]
+        let expected = [DeclareLocal(typedefof<int>); Ldloc 0; Ldc_I4 1; instruction.Add]
         (input, Set.singleton("x")) |> shouldProduceIL <| expected
     
     [<TestMethod>]
     member x.``should codegen x = 1`` () =
         let input = Expr.Assign(Expr.Variable("x"), Expr.Number(1))
-        let expected = [DeclareLocal(typedefof<int>); Ldc_I4(1); Stloc_S 0uy]
+        let expected = [DeclareLocal(typedefof<int>); Ldc_I4(1); Stloc 0]
         (input, Set.singleton("x")) |> shouldProduceIL <| expected
