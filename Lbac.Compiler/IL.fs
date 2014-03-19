@@ -104,46 +104,44 @@
         ilg Ret
         mb
 
-    let private methodName = "MethodName"
+    let private entryPointMethodName = "__Main"
 
     let compileMethod(moduleName: string) (instructions: seq<instruction>) (methodResultType) =
-        let ab = 
-            let assemName = System.IO.Path.ChangeExtension(moduleName, ".exe")
-            let an = new AssemblyName(assemName)
-            AppDomain.CurrentDomain.DefineDynamicAssembly(an, AssemblyBuilderAccess.RunAndSave)
-        let modb = ab.DefineDynamicModule(moduleName)
-        let tb = 
-            let className = "CompiledCode"
-            let ta = TypeAttributes.Public ||| TypeAttributes.AutoLayout ||| TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit
-            modb.DefineType(className, ta)
-        let mb = 
-            let ma = MethodAttributes.Public ||| MethodAttributes.HideBySig
-            tb.DefineMethod(methodName, ma, methodResultType, System.Type.EmptyTypes)
-        let ilg = mb.GetILGenerator() |> emit
-        for instruction in instructions do
-            ilg instruction
+        let assemblyBuilder = 
+            let assemblyName = AssemblyName(moduleName)
+            AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave)
+        let moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleName)
+        let typeBuilder = 
+            let className = "__CompiledMethods"
+            let typeAttributes = TypeAttributes.Public ||| TypeAttributes.AutoLayout ||| TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit
+            moduleBuilder.DefineType(className, typeAttributes)
+        let methodBuilder = 
+            let methodAttributes = MethodAttributes.Public ||| MethodAttributes.HideBySig
+            typeBuilder.DefineMethod(entryPointMethodName, methodAttributes, methodResultType, System.Type.EmptyTypes)
+        let ilg = methodBuilder.GetILGenerator() |> emit
+        Seq.iter ilg instructions 
         ilg Ret
         
-        let t = tb.CreateType()
-        let ep = compileEntryPoint modb mb
-        ab.SetEntryPoint(ep, PEFileKinds.ConsoleApplication)
-        modb.CreateGlobalFunctions()
-        (t, ab)
+        let entryPointType = typeBuilder.CreateType()
+        let entryPoint = compileEntryPoint moduleBuilder methodBuilder
+        assemblyBuilder.SetEntryPoint(entryPoint, PEFileKinds.ConsoleApplication)
+        moduleBuilder.CreateGlobalFunctions()
+        (entryPointType, assemblyBuilder)
 
     let toMethod resultType methodWithInstructions =
         let moduleName = "test.exe"
-        let (t, ab) = compileMethod moduleName methodWithInstructions.Instructions resultType
-        t.GetMethod(methodName)
+        let (t, _) = compileMethod moduleName methodWithInstructions.Instructions resultType
+        t.GetMethod(entryPointMethodName)
 
     let execute<'TMethodResultType> (instructions, saveAs) =
         let moduleName = match saveAs with
                          | Some s -> s
                          | None   -> "test.exe"
-        let (t, ab) = compileMethod moduleName instructions typeof<'TMethodResultType>
+        let (entryPointType, assemblyBuilder) = compileMethod moduleName instructions typeof<'TMethodResultType>
         if saveAs.IsSome then 
-            ab.Save(t.Module.ScopeName)
-        let instance = Activator.CreateInstance(t)
-        t.GetMethod(methodName).Invoke(instance, null) :?> 'TMethodResultType
+            assemblyBuilder.Save(entryPointType.Module.ScopeName)
+        let instance = Activator.CreateInstance(entryPointType)
+        entryPointType.GetMethod(entryPointMethodName).Invoke(instance, null) :?> 'TMethodResultType
 
     let print (instructions: seq<instruction>) =
         let p = sprintf "%A"
